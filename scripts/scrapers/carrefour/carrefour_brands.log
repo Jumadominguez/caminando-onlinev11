@@ -1,0 +1,344 @@
+2025-09-25 12:28:49,164 - INFO - Firefox WebDriver setup successfully
+2025-09-25 12:28:49,167 - INFO - Connected to MongoDB database 'carrefour'
+2025-09-25 12:28:49,168 - INFO - Starting Brand Extraction
+2025-09-25 12:28:49,171 - INFO - Processing 17 categories for brands
+2025-09-25 12:28:49,171 - INFO - Processing brands for: Electro y tecnología
+2025-09-25 12:29:02,996 - INFO - Pressed ESC to close menus
+2025-09-25 12:29:05,011 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:29:11,086 - INFO - Expanded brand container for Electro y tecnología using JavaScript click
+2025-09-25 12:29:17,263 - INFO - Clicked 'ver más' button for brands in Electro y tecnología
+2025-09-25 12:29:21,245 - INFO - Brands for Electro y tecnología: 301 inserted, 0 updated
+2025-09-25 12:29:21,246 - INFO - Processing brands for: Bazar y textil
+2025-09-25 12:29:33,077 - INFO - Pressed ESC to close menus
+2025-09-25 12:29:35,088 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:29:41,150 - INFO - Expanded brand container for Bazar y textil using JavaScript click
+2025-09-25 12:29:47,373 - INFO - Clicked 'ver más' button for brands in Bazar y textil
+2025-09-25 12:29:56,021 - INFO - Brands for Bazar y textil: 556 inserted, 0 updated
+2025-09-25 12:29:56,022 - INFO - Processing brands for: Almacén
+2025-09-25 12:30:07,152 - INFO - Pressed ESC to close menus
+2025-09-25 12:30:09,162 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:30:15,214 - INFO - Expanded brand container for Almacén using JavaScript click
+2025-09-25 12:30:21,355 - INFO - Clicked 'ver más' button for brands in Almacén
+2025-09-25 12:30:24,281 - INFO - Brands for Almacén: 221 inserted, 0 updated
+2025-09-25 12:30:24,282 - INFO - Processing brands for: Desayuno y merienda
+2025-09-25 12:30:37,491 - INFO - Pressed ESC to close menus
+2025-09-25 12:30:39,501 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:30:45,562 - INFO - Expanded brand container for Desayuno y merienda using JavaScript click
+2025-09-25 12:30:51,734 - INFO - Clicked 'ver más' button for brands in Desayuno y merienda
+2025-09-25 12:30:55,845 - INFO - Brands for Desayuno y merienda: 305 inserted, 0 updated
+2025-09-25 12:30:55,845 - INFO - Processing brands for: Bebidas
+2025-09-25 12:31:07,192 - INFO - Pressed ESC to close menus
+2025-09-25 12:31:09,202 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:31:15,279 - INFO - Expanded brand container for Bebidas using JavaScript click
+2025-09-25 12:31:21,466 - INFO - Clicked 'ver más' button for brands in Bebidas
+2025-09-25 12:31:27,136 - INFO - Brands for Bebidas: 419 inserted, 0 updated
+2025-09-25 12:31:27,137 - INFO - Processing brands for: Lácteos y productos frescos
+2025-09-25 12:31:41,468 - INFO - Pressed ESC to close menus
+2025-09-25 12:31:43,491 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:31:49,548 - INFO - Expanded brand container for Lácteos y productos frescos using JavaScript click
+2025-09-25 12:31:55,688 - INFO - Clicked 'ver más' button for brands in Lácteos y productos frescos
+2025-09-25 12:31:57,745 - INFO - Brands for Lácteos y productos frescos: 143 inserted, 0 updated
+2025-09-25 12:31:57,745 - INFO - Processing brands for: Carnes y Pescados
+2025-09-25 12:32:09,063 - INFO - Pressed ESC to close menus
+2025-09-25 12:32:11,073 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:32:17,126 - INFO - Expanded brand container for Carnes y Pescados using JavaScript click
+2025-09-25 12:32:23,220 - INFO - Clicked 'ver más' button for brands in Carnes y Pescados
+2025-09-25 12:32:23,728 - INFO - Brands for Carnes y Pescados: 33 inserted, 0 updated
+2025-09-25 12:32:23,728 - INFO - Processing brands for: Frutas y Verduras
+2025-09-25 12:32:34,835 - INFO - Pressed ESC to close menus
+2025-09-25 12:32:36,845 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:32:42,896 - INFO - Expanded brand container for Frutas y Verduras using JavaScript click
+2025-09-25 12:32:44,909 - INFO - No 'ver más' button found for brands in Frutas y Verduras
+2025-09-25 12:32:45,185 - INFO - Brands for Frutas y Verduras: 20 inserted, 0 updated
+2025-09-25 12:32:45,185 - INFO - Processing brands for: Panadería
+2025-09-25 12:32:58,193 - INFO - Pressed ESC to close menus
+2025-09-25 12:33:00,205 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:33:06,273 - INFO - Expanded brand container for Panadería using JavaScript click
+2025-09-25 12:33:12,381 - INFO - Clicked 'ver más' button for brands in Panadería
+2025-09-25 12:33:12,972 - INFO - Brands for Panadería: 42 inserted, 0 updated
+2025-09-25 12:33:12,973 - INFO - Processing brands for: Congelados
+2025-09-25 12:33:26,286 - INFO - Pressed ESC to close menus
+2025-09-25 12:33:28,296 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:33:34,393 - INFO - Expanded brand container for Congelados using JavaScript click
+2025-09-25 12:33:40,490 - INFO - Clicked 'ver más' button for brands in Congelados
+2025-09-25 12:33:41,461 - INFO - Brands for Congelados: 69 inserted, 0 updated
+2025-09-25 12:33:41,461 - INFO - Processing brands for: Limpieza
+2025-09-25 12:33:55,608 - INFO - Pressed ESC to close menus
+2025-09-25 12:33:57,618 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:34:57,479 - INFO - Firefox WebDriver setup successfully
+2025-09-25 12:34:57,482 - INFO - Connected to MongoDB database 'carrefour'
+2025-09-25 12:34:57,482 - INFO - Starting Brand Extraction
+2025-09-25 12:34:57,511 - INFO - Processing 17 categories for brands
+2025-09-25 12:34:57,512 - INFO - Processing brands for: Electro y tecnología
+2025-09-25 12:35:11,062 - INFO - Pressed ESC to close menus
+2025-09-25 12:35:13,074 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:35:19,147 - INFO - Expanded brand container for Electro y tecnología using JavaScript click
+2025-09-25 12:35:25,310 - INFO - Clicked 'ver más' button for brands in Electro y tecnología
+2025-09-25 12:35:29,196 - INFO - Brands for Electro y tecnología: 0 inserted, 301 updated
+2025-09-25 12:35:29,197 - INFO - Processing brands for: Bazar y textil
+2025-09-25 12:35:42,391 - INFO - Pressed ESC to close menus
+2025-09-25 12:35:44,402 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:35:50,463 - INFO - Expanded brand container for Bazar y textil using JavaScript click
+2025-09-25 12:35:56,711 - INFO - Clicked 'ver más' button for brands in Bazar y textil
+2025-09-25 12:36:04,479 - INFO - Brands for Bazar y textil: 0 inserted, 556 updated
+2025-09-25 12:36:04,479 - INFO - Processing brands for: Almacén
+2025-09-25 12:36:16,393 - INFO - Pressed ESC to close menus
+2025-09-25 12:36:18,410 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:36:24,473 - INFO - Expanded brand container for Almacén using JavaScript click
+2025-09-25 12:36:30,620 - INFO - Clicked 'ver más' button for brands in Almacén
+2025-09-25 12:36:33,495 - INFO - Brands for Almacén: 0 inserted, 221 updated
+2025-09-25 12:36:33,495 - INFO - Processing brands for: Desayuno y merienda
+2025-09-25 12:36:44,636 - INFO - Pressed ESC to close menus
+2025-09-25 12:36:46,649 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:39:11,456 - INFO - Firefox WebDriver setup successfully with anti-bot measures
+2025-09-25 12:39:11,458 - INFO - Connected to MongoDB database 'carrefour'
+2025-09-25 12:39:11,458 - INFO - Starting Brand Extraction
+2025-09-25 12:39:11,461 - INFO - Processing 17 categories for brands
+2025-09-25 12:39:11,461 - INFO - Processing brands for: Electro y tecnología
+2025-09-25 12:39:26,965 - INFO - Pressed ESC to close menus
+2025-09-25 12:39:28,978 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:39:35,048 - INFO - Expanded brand container for Electro y tecnología using JavaScript click
+2025-09-25 12:39:41,210 - INFO - Clicked 'ver más' button for brands in Electro y tecnología
+2025-09-25 12:39:45,690 - INFO - Brands for Electro y tecnología: 0 inserted, 301 updated
+2025-09-25 12:39:45,690 - INFO - Waiting 2.9 seconds before next category...
+2025-09-25 12:39:48,579 - INFO - Processing brands for: Bazar y textil
+2025-09-25 12:40:06,345 - INFO - Pressed ESC to close menus
+2025-09-25 12:40:08,356 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:40:14,418 - INFO - Expanded brand container for Bazar y textil using JavaScript click
+2025-09-25 12:40:20,646 - INFO - Clicked 'ver más' button for brands in Bazar y textil
+2025-09-25 12:40:28,025 - INFO - Brands for Bazar y textil: 0 inserted, 556 updated
+2025-09-25 12:40:28,025 - INFO - Waiting 4.2 seconds before next category...
+2025-09-25 12:40:32,258 - INFO - Processing brands for: Almacén
+2025-09-25 12:40:42,718 - INFO - Pressed ESC to close menus
+2025-09-25 12:40:44,730 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:40:50,778 - INFO - Expanded brand container for Almacén using JavaScript click
+2025-09-25 12:40:56,929 - INFO - Clicked 'ver más' button for brands in Almacén
+2025-09-25 12:40:59,815 - INFO - Brands for Almacén: 0 inserted, 221 updated
+2025-09-25 12:40:59,815 - INFO - Waiting 4.3 seconds before next category...
+2025-09-25 12:41:04,127 - INFO - Processing brands for: Desayuno y merienda
+2025-09-25 12:41:18,700 - INFO - Pressed ESC to close menus
+2025-09-25 12:41:20,711 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:41:26,766 - INFO - Expanded brand container for Desayuno y merienda using JavaScript click
+2025-09-25 12:41:32,923 - INFO - Clicked 'ver más' button for brands in Desayuno y merienda
+2025-09-25 12:41:36,968 - INFO - Brands for Desayuno y merienda: 0 inserted, 305 updated
+2025-09-25 12:41:36,968 - INFO - Waiting 2.3 seconds before next category...
+2025-09-25 12:41:39,259 - INFO - Processing brands for: Bebidas
+2025-09-25 12:41:51,923 - INFO - Pressed ESC to close menus
+2025-09-25 12:41:53,934 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:41:59,992 - INFO - Expanded brand container for Bebidas using JavaScript click
+2025-09-25 12:42:06,209 - INFO - Clicked 'ver más' button for brands in Bebidas
+2025-09-25 12:42:11,807 - INFO - Brands for Bebidas: 0 inserted, 419 updated
+2025-09-25 12:42:11,807 - INFO - Waiting 2.1 seconds before next category...
+2025-09-25 12:42:13,900 - INFO - Processing brands for: Lácteos y productos frescos
+2025-09-25 12:42:26,622 - INFO - Pressed ESC to close menus
+2025-09-25 12:42:28,632 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:42:34,683 - INFO - Expanded brand container for Lácteos y productos frescos using JavaScript click
+2025-09-25 12:42:40,773 - INFO - Clicked 'ver más' button for brands in Lácteos y productos frescos
+2025-09-25 12:42:42,831 - INFO - Brands for Lácteos y productos frescos: 0 inserted, 143 updated
+2025-09-25 12:42:42,832 - INFO - Waiting 2.5 seconds before next category...
+2025-09-25 12:42:45,330 - INFO - Processing brands for: Carnes y Pescados
+2025-09-25 12:42:57,901 - INFO - Pressed ESC to close menus
+2025-09-25 12:42:59,910 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:43:05,968 - INFO - Expanded brand container for Carnes y Pescados using JavaScript click
+2025-09-25 12:43:12,052 - INFO - Clicked 'ver más' button for brands in Carnes y Pescados
+2025-09-25 12:43:12,496 - INFO - Brands for Carnes y Pescados: 0 inserted, 33 updated
+2025-09-25 12:43:12,496 - INFO - Waiting 3.0 seconds before next category...
+2025-09-25 12:43:15,468 - INFO - Processing brands for: Frutas y Verduras
+2025-09-25 12:43:29,649 - INFO - Pressed ESC to close menus
+2025-09-25 12:43:31,659 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:43:37,722 - INFO - Expanded brand container for Frutas y Verduras using JavaScript click
+2025-09-25 12:43:39,732 - INFO - No 'ver más' button found for brands in Frutas y Verduras
+2025-09-25 12:43:40,013 - INFO - Brands for Frutas y Verduras: 0 inserted, 20 updated
+2025-09-25 12:43:40,013 - INFO - Waiting 2.1 seconds before next category...
+2025-09-25 12:43:42,124 - INFO - Processing brands for: Panadería
+2025-09-25 12:43:57,424 - INFO - Pressed ESC to close menus
+2025-09-25 12:43:59,437 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:44:05,491 - INFO - Expanded brand container for Panadería using JavaScript click
+2025-09-25 12:44:11,569 - INFO - Clicked 'ver más' button for brands in Panadería
+2025-09-25 12:44:12,116 - INFO - Brands for Panadería: 0 inserted, 42 updated
+2025-09-25 12:44:12,116 - INFO - Waiting 4.0 seconds before next category...
+2025-09-25 12:44:16,134 - INFO - Processing brands for: Congelados
+2025-09-25 12:44:29,672 - INFO - Pressed ESC to close menus
+2025-09-25 12:44:31,683 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:44:37,739 - INFO - Expanded brand container for Congelados using JavaScript click
+2025-09-25 12:44:43,839 - INFO - Clicked 'ver más' button for brands in Congelados
+2025-09-25 12:44:44,809 - INFO - Brands for Congelados: 0 inserted, 69 updated
+2025-09-25 12:44:44,809 - INFO - Waiting 4.6 seconds before next category...
+2025-09-25 12:44:49,453 - INFO - Processing brands for: Limpieza
+2025-09-25 12:45:02,747 - INFO - Pressed ESC to close menus
+2025-09-25 12:45:04,758 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:45:10,808 - INFO - Expanded brand container for Limpieza using JavaScript click
+2025-09-25 12:45:16,966 - INFO - Clicked 'ver más' button for brands in Limpieza
+2025-09-25 12:45:19,083 - INFO - Brands for Limpieza: 118 inserted, 44 updated
+2025-09-25 12:45:19,084 - INFO - Waiting 3.1 seconds before next category...
+2025-09-25 12:45:22,156 - INFO - Processing brands for: Perfumería
+2025-09-25 12:45:37,820 - INFO - Pressed ESC to close menus
+2025-09-25 12:45:39,831 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:45:45,892 - INFO - Expanded brand container for Perfumería using JavaScript click
+2025-09-25 12:45:52,021 - INFO - Clicked 'ver más' button for brands in Perfumería
+2025-09-25 12:45:54,942 - INFO - Brands for Perfumería: 167 inserted, 29 updated
+2025-09-25 12:45:54,943 - INFO - Waiting 2.5 seconds before next category...
+2025-09-25 12:45:57,457 - INFO - Processing brands for: Mundo bebé
+2025-09-25 12:46:09,884 - INFO - Pressed ESC to close menus
+2025-09-25 12:46:11,895 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:46:17,954 - INFO - Expanded brand container for Mundo bebé using JavaScript click
+2025-09-25 12:46:24,064 - INFO - Clicked 'ver más' button for brands in Mundo bebé
+2025-09-25 12:46:24,760 - INFO - Brands for Mundo bebé: 27 inserted, 26 updated
+2025-09-25 12:46:24,760 - INFO - Waiting 4.9 seconds before next category...
+2025-09-25 12:46:29,681 - INFO - Processing brands for: Mascotas
+2025-09-25 12:46:44,811 - INFO - Pressed ESC to close menus
+2025-09-25 12:46:46,820 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:46:52,879 - INFO - Expanded brand container for Mascotas using JavaScript click
+2025-09-25 12:46:59,007 - INFO - Clicked 'ver más' button for brands in Mascotas
+2025-09-25 12:46:59,767 - INFO - Brands for Mascotas: 46 inserted, 10 updated
+2025-09-25 12:46:59,767 - INFO - Waiting 3.7 seconds before next category...
+2025-09-25 12:47:03,500 - INFO - Processing brands for: Indumentaria
+2025-09-25 12:47:20,346 - INFO - Pressed ESC to close menus
+2025-09-25 12:47:22,354 - INFO - Found brand container with selector: [class*="brand"]
+2025-09-25 12:47:22,355 - INFO - Brand container already expanded for Indumentaria
+2025-09-25 12:47:24,364 - INFO - No 'ver más' button found for brands in Indumentaria
+2025-09-25 12:47:24,365 - INFO - Brands for Indumentaria: 0 inserted, 0 updated
+2025-09-25 12:47:24,366 - INFO - Waiting 3.4 seconds before next category...
+2025-09-25 12:47:27,722 - INFO - Processing brands for: Librería
+2025-09-25 12:47:44,648 - INFO - Pressed ESC to close menus
+2025-09-25 12:47:46,657 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:47:52,715 - INFO - Expanded brand container for Librería using JavaScript click
+2025-09-25 12:47:58,818 - INFO - Clicked 'ver más' button for brands in Librería
+2025-09-25 12:47:59,780 - INFO - Brands for Librería: 48 inserted, 23 updated
+2025-09-25 12:47:59,780 - INFO - Waiting 4.5 seconds before next category...
+2025-09-25 12:48:04,310 - INFO - Processing brands for: Automotor
+2025-09-25 12:48:18,794 - INFO - Pressed ESC to close menus
+2025-09-25 12:48:20,805 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 12:48:26,860 - INFO - Expanded brand container for Automotor using JavaScript click
+2025-09-25 12:48:32,963 - INFO - Clicked 'ver más' button for brands in Automotor
+2025-09-25 12:48:34,066 - INFO - Brands for Automotor: 57 inserted, 25 updated
+2025-09-25 12:48:34,067 - INFO - Waiting 4.7 seconds before next category...
+2025-09-25 12:48:38,724 - INFO - Total brands extracted: 2729
+2025-09-25 12:48:38,724 - INFO - Brand extraction completed successfully
+2025-09-25 12:48:42,780 - INFO - WebDriver closed
+2025-09-25 13:03:15,755 - INFO - Firefox WebDriver setup successfully with anti-bot measures
+2025-09-25 13:03:15,758 - INFO - Connected to MongoDB database 'carrefour'
+2025-09-25 13:03:15,758 - INFO - Starting Brand Extraction
+2025-09-25 13:03:15,779 - INFO - Processing 17 categories for brands
+2025-09-25 13:03:15,779 - INFO - Processing brands for: Electro y tecnología
+2025-09-25 13:03:30,354 - INFO - Pressed ESC to close menus
+2025-09-25 13:03:32,364 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:03:38,437 - INFO - Expanded brand container for Electro y tecnología using JavaScript click
+2025-09-25 13:03:44,613 - INFO - Clicked 'ver más' button for brands in Electro y tecnología
+2025-09-25 13:03:48,658 - INFO - Brands for Electro y tecnología: 303 inserted, 0 updated
+2025-09-25 13:03:48,658 - INFO - Waiting 4.0 seconds before next category...
+2025-09-25 13:03:52,651 - INFO - Processing brands for: Bazar y textil
+2025-09-25 13:04:04,860 - INFO - Pressed ESC to close menus
+2025-09-25 13:04:06,873 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:04:12,940 - INFO - Expanded brand container for Bazar y textil using JavaScript click
+2025-09-25 13:04:19,151 - INFO - Clicked 'ver más' button for brands in Bazar y textil
+2025-09-25 13:04:26,440 - INFO - Brands for Bazar y textil: 501 inserted, 55 updated
+2025-09-25 13:04:26,441 - INFO - Waiting 2.6 seconds before next category...
+2025-09-25 13:04:29,087 - INFO - Processing brands for: Almacén
+2025-09-25 13:04:43,154 - INFO - Pressed ESC to close menus
+2025-09-25 13:04:45,171 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:04:51,253 - INFO - Expanded brand container for Almacén using JavaScript click
+2025-09-25 13:04:57,416 - INFO - Clicked 'ver más' button for brands in Almacén
+2025-09-25 13:05:00,344 - INFO - Brands for Almacén: 217 inserted, 4 updated
+2025-09-25 13:05:00,344 - INFO - Waiting 3.2 seconds before next category...
+2025-09-25 13:05:03,556 - INFO - Processing brands for: Desayuno y merienda
+2025-09-25 13:05:17,536 - INFO - Pressed ESC to close menus
+2025-09-25 13:05:19,550 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:05:25,607 - INFO - Expanded brand container for Desayuno y merienda using JavaScript click
+2025-09-25 13:05:31,770 - INFO - Clicked 'ver más' button for brands in Desayuno y merienda
+2025-09-25 13:05:36,076 - INFO - Brands for Desayuno y merienda: 259 inserted, 46 updated
+2025-09-25 13:05:36,076 - INFO - Waiting 3.5 seconds before next category...
+2025-09-25 13:05:39,530 - INFO - Processing brands for: Bebidas
+2025-09-25 13:05:54,303 - INFO - Pressed ESC to close menus
+2025-09-25 13:05:56,332 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:06:02,407 - INFO - Expanded brand container for Bebidas using JavaScript click
+2025-09-25 13:06:08,612 - INFO - Clicked 'ver más' button for brands in Bebidas
+2025-09-25 13:06:14,787 - INFO - Brands for Bebidas: 401 inserted, 18 updated
+2025-09-25 13:06:14,787 - INFO - Waiting 3.2 seconds before next category...
+2025-09-25 13:06:18,027 - INFO - Processing brands for: Lácteos y productos frescos
+2025-09-25 13:06:30,537 - INFO - Pressed ESC to close menus
+2025-09-25 13:06:32,546 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:06:38,605 - INFO - Expanded brand container for Lácteos y productos frescos using JavaScript click
+2025-09-25 13:06:44,757 - INFO - Clicked 'ver más' button for brands in Lácteos y productos frescos
+2025-09-25 13:06:46,871 - INFO - Brands for Lácteos y productos frescos: 117 inserted, 26 updated
+2025-09-25 13:06:46,872 - INFO - Waiting 3.5 seconds before next category...
+2025-09-25 13:06:50,325 - INFO - Processing brands for: Carnes y Pescados
+2025-09-25 13:07:04,137 - INFO - Pressed ESC to close menus
+2025-09-25 13:07:06,147 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:07:12,205 - INFO - Expanded brand container for Carnes y Pescados using JavaScript click
+2025-09-25 13:07:18,277 - INFO - Clicked 'ver más' button for brands in Carnes y Pescados
+2025-09-25 13:07:18,726 - INFO - Brands for Carnes y Pescados: 24 inserted, 9 updated
+2025-09-25 13:07:18,727 - INFO - Waiting 3.4 seconds before next category...
+2025-09-25 13:07:22,085 - INFO - Processing brands for: Frutas y Verduras
+2025-09-25 13:07:37,001 - INFO - Pressed ESC to close menus
+2025-09-25 13:07:39,012 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:07:45,074 - INFO - Expanded brand container for Frutas y Verduras using JavaScript click
+2025-09-25 13:07:47,086 - INFO - No 'ver más' button found for brands in Frutas y Verduras
+2025-09-25 13:07:47,373 - INFO - Brands for Frutas y Verduras: 15 inserted, 5 updated
+2025-09-25 13:07:47,374 - INFO - Waiting 4.1 seconds before next category...
+2025-09-25 13:07:51,447 - INFO - Processing brands for: Panadería
+2025-09-25 13:08:03,894 - INFO - Pressed ESC to close menus
+2025-09-25 13:08:05,906 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:08:11,971 - INFO - Expanded brand container for Panadería using JavaScript click
+2025-09-25 13:08:18,081 - INFO - Clicked 'ver más' button for brands in Panadería
+2025-09-25 13:08:18,684 - INFO - Brands for Panadería: 14 inserted, 28 updated
+2025-09-25 13:08:18,685 - INFO - Waiting 3.5 seconds before next category...
+2025-09-25 13:08:22,219 - INFO - Processing brands for: Congelados
+2025-09-25 13:08:37,600 - INFO - Pressed ESC to close menus
+2025-09-25 13:08:39,612 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:08:45,673 - INFO - Expanded brand container for Congelados using JavaScript click
+2025-09-25 13:08:51,778 - INFO - Clicked 'ver más' button for brands in Congelados
+2025-09-25 13:08:52,735 - INFO - Brands for Congelados: 43 inserted, 26 updated
+2025-09-25 13:08:52,735 - INFO - Waiting 3.1 seconds before next category...
+2025-09-25 13:08:55,810 - INFO - Processing brands for: Limpieza
+2025-09-25 13:09:08,861 - INFO - Pressed ESC to close menus
+2025-09-25 13:09:10,871 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:09:16,932 - INFO - Expanded brand container for Limpieza using JavaScript click
+2025-09-25 13:09:23,074 - INFO - Clicked 'ver más' button for brands in Limpieza
+2025-09-25 13:09:25,232 - INFO - Brands for Limpieza: 115 inserted, 44 updated
+2025-09-25 13:09:25,232 - INFO - Waiting 3.1 seconds before next category...
+2025-09-25 13:09:28,289 - INFO - Processing brands for: Perfumería
+2025-09-25 13:09:41,173 - INFO - Pressed ESC to close menus
+2025-09-25 13:09:43,185 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:09:49,241 - INFO - Expanded brand container for Perfumería using JavaScript click
+2025-09-25 13:09:55,381 - INFO - Clicked 'ver más' button for brands in Perfumería
+2025-09-25 13:09:58,032 - INFO - Brands for Perfumería: 167 inserted, 29 updated
+2025-09-25 13:09:58,032 - INFO - Waiting 4.3 seconds before next category...
+2025-09-25 13:10:02,341 - INFO - Processing brands for: Mundo bebé
+2025-09-25 13:10:14,696 - INFO - Pressed ESC to close menus
+2025-09-25 13:10:16,707 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:10:22,765 - INFO - Expanded brand container for Mundo bebé using JavaScript click
+2025-09-25 13:10:28,860 - INFO - Clicked 'ver más' button for brands in Mundo bebé
+2025-09-25 13:10:29,569 - INFO - Brands for Mundo bebé: 27 inserted, 26 updated
+2025-09-25 13:10:29,569 - INFO - Waiting 4.4 seconds before next category...
+2025-09-25 13:10:34,007 - INFO - Processing brands for: Mascotas
+2025-09-25 13:10:47,612 - INFO - Pressed ESC to close menus
+2025-09-25 13:10:49,628 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:10:55,689 - INFO - Expanded brand container for Mascotas using JavaScript click
+2025-09-25 13:11:01,781 - INFO - Clicked 'ver más' button for brands in Mascotas
+2025-09-25 13:11:02,524 - INFO - Brands for Mascotas: 46 inserted, 10 updated
+2025-09-25 13:11:02,524 - INFO - Waiting 4.3 seconds before next category...
+2025-09-25 13:11:06,814 - INFO - Processing brands for: Indumentaria
+2025-09-25 13:11:17,376 - INFO - Pressed ESC to close menus
+2025-09-25 13:11:19,386 - INFO - Found brand container with selector: [class*="brand"]
+2025-09-25 13:11:19,389 - INFO - Brand container already expanded for Indumentaria
+2025-09-25 13:11:21,394 - INFO - No 'ver más' button found for brands in Indumentaria
+2025-09-25 13:11:21,396 - INFO - Brands for Indumentaria: 0 inserted, 0 updated
+2025-09-25 13:11:21,397 - INFO - Waiting 3.0 seconds before next category...
+2025-09-25 13:11:24,428 - INFO - Processing brands for: Librería
+2025-09-25 13:11:37,086 - INFO - Pressed ESC to close menus
+2025-09-25 13:11:39,095 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:11:45,154 - INFO - Expanded brand container for Librería using JavaScript click
+2025-09-25 13:11:51,256 - INFO - Clicked 'ver más' button for brands in Librería
+2025-09-25 13:11:52,367 - INFO - Brands for Librería: 48 inserted, 23 updated
+2025-09-25 13:11:52,367 - INFO - Waiting 2.5 seconds before next category...
+2025-09-25 13:11:54,829 - INFO - Processing brands for: Automotor
+2025-09-25 13:12:09,776 - INFO - Pressed ESC to close menus
+2025-09-25 13:12:11,789 - INFO - Found brand container with selector: div.valtech-carrefourar-search-result-3-x-filter__container--brand
+2025-09-25 13:12:17,869 - INFO - Expanded brand container for Automotor using JavaScript click
+2025-09-25 13:12:23,975 - INFO - Clicked 'ver más' button for brands in Automotor
+2025-09-25 13:12:25,144 - INFO - Brands for Automotor: 58 inserted, 24 updated
+2025-09-25 13:12:25,144 - INFO - Waiting 4.7 seconds before next category...
+2025-09-25 13:12:29,851 - INFO - Total brands extracted: 2728
+2025-09-25 13:12:29,851 - INFO - Brand extraction completed successfully
+2025-09-25 13:12:33,221 - INFO - WebDriver closed

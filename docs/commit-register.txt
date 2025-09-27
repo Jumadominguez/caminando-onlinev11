@@ -1,0 +1,40 @@
+# Commit Register
+
+Este archivo registra todos los cambios realizados localmente antes de hacer commits a GitHub.
+Cada entrada debe incluir:
+- Fecha y hora
+- Tipo de cambio (FEAT, FIX, REFACTOR, etc.)
+- Descripción breve del cambio
+- Archivos afectados (opcional)
+
+Cuando se solicite subir a GitHub, se usará esta información para crear el mensaje del commit.
+
+---
+
+[Formato de ejemplo]
+2025-09-27 14:30 - REFACTOR - Reducir browsers de 15 a 12 en script de extracción
+Archivos: Sandbox/Experiments/CHECKPOINT 06 MULTI-BROWSER SIMULTANEO - extract_products_to_products_collection.py
+
+2025-09-27 15:00 - DOC - Actualizar flujo de trabajo en github-instrucciones.md y crear commit-register.txt
+Archivos: .github/instructions/github-instrucciones.instructions.md, docs/commit-register.txt
+
+2025-09-27 16:00 - CHECKPOINT - Crear copia del script para checkpoint 07 FILTRADO - step6_products.py
+Archivos: Sandbox/Experiments/checkpoint 07 FILTRADO - step6_products.py
+
+2025-09-27 17:00 - FEAT - Crear script de prueba para comparar productos totales en categorías vs registrados
+Archivos: Sandbox/Experiments/test_categories_products_comparison.py
+
+2025-09-27 18:00 - FIX - Corregir path del geckodriver en script de comparación
+Archivos: Sandbox/Experiments/test_categories_products_comparison.py
+
+2025-09-27 19:00 - REFACTOR - Limitar script a primera categoría y actualizar selector de productos totales
+Archivos: Sandbox/Experiments/test_categories_products_comparison.py
+
+2025-09-27 20:00 - REFACTOR - Extender script para procesar todas las 17 categorías
+Archivos: Sandbox/Experiments/test_categories_products_comparison.py
+
+2025-09-27 21:00 - DOC - Corregir flujo de actualización del commit-counter para que sea post-commit
+Archivos: .github/instructions/github-instrucciones.instructions.md
+
+---
+
