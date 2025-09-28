@@ -90,10 +90,9 @@ const CarrefourProduct = carrefour.model('Product', rawProductSchema);
 
 #### Base `operations_db`:
 - `Order` - Pedidos realizados
-- `PriceHistory` - Historial de precios
 - `Notification` - Notificaciones del sistema
 - `ApiLog` - Logs de llamadas a APIs
-- `SystemSetting` - Configuraciones del sistema
+- `SystemSettings` - Configuraciones del sistema
 
 #### Base `caminando_online_db`:
 - `Supermarket` - Metadatos de supermercados
@@ -103,6 +102,7 @@ const CarrefourProduct = carrefour.model('Product', rawProductSchema);
 - `Product` - Productos individuales
 - `Filter` - Sistema de filtros
 - `Offer` - Ofertas y promociones
+- `PriceHistory` - Historial de precios
 
 #### Bases Raw (`carrefour`, `dia`, `jumbo`, `vea`, `disco`):
 - `Supermarket` - Metadatos del sitio

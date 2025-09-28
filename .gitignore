@@ -3,6 +3,7 @@
 # Sandbox exclusions
 Sandbox/Debug/
 Sandbox/Temps/
+Sandbox/vault/
 
 # Virtual environments
 venv/

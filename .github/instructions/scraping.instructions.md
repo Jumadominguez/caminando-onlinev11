@@ -1,31 +1,3 @@
-Ok. Ahora necesitamos crear el instructivo para realizar el proceso de scrapings efectivamente.
-
-Principalmente me interesa mucho poder guardar checkpoints con cada avance significativo de los scrapings en caso de fallas, porque van a haber muchas fallas.
-
-Tenes que usar Sandbox efectivamente utilizando las carpetas para lo que fueron creadas.
-
-Los scrapers se van a enfocar en conseguir la informacion para los models de product_raw. Los models de supermarket-info, category, subcategory, producttype, filters, products de cada supermercado estan relacionados entre si. La jerarquia es Category>Subcategory>Producttype (filter es una sub seccion de producttype)>product. Tambien hay que desarrollar un scraper que analice y extraiga correctamente las ofertas y promociones de cada sitio.
-
-Antes de desarrollar los scrapers, tenemos que desarrollar un script o una forma de que puedas almacenar todos los outerHTML completos de los sitios web a scrapear, para que puedas analizarlos cuando sea necesario y tener siempre presente los elementos y selectores, incluidos los que se encuentran en metadata, correctos para trabajar. Este scraper debe extraer los archivos y guardarlos dentro de la carpeta HTML de cada sitio (por ejemplo src/backend/src/scripts/scrapers/{supermercado}/HTML)
-
-Vamos a trabajar en hacer los scrapers de cada etapa para los 5 supermercados antes de pasar al siguiente:
-Primero vamos a armar los scrapers para supermarket-info, luego para category, luego para subcategory, luego para producttypes, luego para filters y luego para product.
-
-A medida que vamos subiendo en los niveles, la cantidad de objetos a extraer incrementa exponencialmente. Supermarket info es 1, categorias son alrededor de 20, subcategorias alrededor de 400, producttype alrededor de 3600 y products pueden ser incluso mas de 30.000. Por eso es importante tener en cuenta desde el comienzo que el script debe estar pensado para reducir los tiempos de iteracion y trabajar con sesiones procesando por chunks en simultaneo para reducir al maximo los tiempos de procesamiento. Sobre trabajar con sesiones en simultaneo, los scripts deben tener aplicadas todas las herramientas para evitar que los sitios web de los supermercados lo detecten como bot y bloqueen la conexion.
-
-La forma de trabajar por chunks sera que si, por ejemplo una subcategoria tiene mas de 30 producttypes para analizar, estos se deben dividir en 10, abrir 10 sesiones y que cada una procese en chunks correspondientes (Sesion 1 procesa del 1 al 3. Sesion 2 del 4 al 6. Sesion 4 procesa del 7 al 9. Y asi sucesivamente)
-
-Esta forma de trabajo esta pensada para que, una vez que tengamos todos los scripts de scraping, podamos crear un dashboard con un GUI que me permita manejar mas facilmente la extraccion y actualizacion de informacion de manera granular pudiendo elegir especificamente que category, subcategory, product, etc quiero que se procese.
-
-Ademas, el objetivo final es que los scrapers se puedan activar automaticamente una vez al dia para mantener actualizado los productos respecto a los cambios que realizan los sitios web de los supermercados. Los precios pueden cambiar y los productos se pueden agregar/remover del lado de los sitios web de los supermercados sin aviso y si la plataforma le muestra al usuario un precio viejo diferente al real o un producto que no esta disponible, seria devastador.
-
-El browser para hacer el scraping sera Mozilla Firefox.
-
-Con esta informacion crea en Library un scraping.instructions.md explicando optimizadamente para agentes de IA el proceso con todas las instrucciones extra que consideres necesarias.
-
-
-
-
 # Instructivo para Desarrollo de Scrapers de Supermercados
 
 Este documento proporciona guías detalladas y optimizadas para agentes de IA en el desarrollo de scrapers para la plataforma Caminando Online. El enfoque está en extraer datos de productos de 5 supermercados (Carrefour, Dia, Jumbo, Vea, Disco) siguiendo una jerarquía modular, utilizando checkpoints para resiliencia ante fallas, y optimizando el procesamiento con chunks simultáneos para manejar volúmenes exponenciales de datos.
@@ -127,6 +99,12 @@ Desarrolla scrapers por nivel, completando todos los 5 supermercados antes de pa
    - Analiza promociones específicas del sitio.
    - Modelo: `Product.js`, `Offer.js`, `PriceHistory.js`.
    - Depende de: Product Types.
+
+6. **Offers**:
+   - Extrae detalles de promociones específicas.
+   - Aplica ofertas a productos correspondientes según reglas del sitio web.
+   - Modelo: `Offer.js`.
+   - Depende de: Products.
 
 **Por niveles**: Completa el ciclo completo para un nivel antes de pasar a la siguiente (e.g., el script de Supermarket-info para los 5 supermercados antes de pasar al de categoría. El scraper de categorías para los 5 supermercados antes de pasar al de subcategorías.).
 

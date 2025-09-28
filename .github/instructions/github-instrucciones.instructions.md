@@ -42,7 +42,7 @@ Usa mensajes descriptivos y estandarizados para identificar fácilmente el proce
   - `[CHECKPOINT]`: Guardar estado en Experiments/Prototypes.
   - `[MERGE]`: Integración de branches.
 
-- **Frecuencia**: Commit después de completar una tarea pequeña o al final de una sesión. Evita commits grandes; divide en lógicos.
+- **Frecuencia**: Guarda los commits cuando el usuario te pida.
 - **Uso como Checkpoints**: Antes de experimentar, commit con `[CHECKPOINT-XXX] Inicio de experimento X`. Si falla, revierte con `git reset --hard <commit-hash>` o `git revert`.
 
 ### Comandos Básicos para Commits

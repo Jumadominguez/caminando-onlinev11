@@ -12,6 +12,8 @@ El entorno `Sandbox` es nuestra mesa de trabajo principal para el desarrollo de 
 
 - **temps**: Espacio para scripts de test, versiones simplificadas, alternativas y archivos temporales como reportes de debug. Nada en esta carpeta es esencial para el funcionamiento a largo plazo; limpia periódicamente los archivos innecesarios.
 
+- **vault**: Espacio para almacenar código viejo como backup temporal. Esta carpeta está excluida del control de versiones (agregada a .gitignore) para evitar commits innecesarios.
+
 ## Buenas Prácticas
 
 - Mantén una documentación clara de cada experimento, prototipo y script de debugging.
