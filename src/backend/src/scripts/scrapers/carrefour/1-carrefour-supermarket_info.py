@@ -26,17 +26,47 @@ import time
 from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
+try:
+    from colorama import init, Fore, Back, Style
+    COLORAMA_AVAILABLE = True
+    init(autoreset=True)
+except ImportError:
+    COLORAMA_AVAILABLE = False
 
-# Configure logging
+# Configure logging (simple, without colors)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('supermarket_info_scraper.log'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Colored print functions
+def print_success(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.GREEN}✓ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[SUCCESS] {message}")
+
+def print_warning(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.YELLOW}⚠ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[WARNING] {message}")
+
+def print_error(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.RED}✗ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[ERROR] {message}")
+
+def print_info(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.CYAN}ℹ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[INFO] {message}")
 
 class CarrefourSupermarketInfoScraper:
     def __init__(self):
@@ -54,24 +84,25 @@ class CarrefourSupermarketInfoScraper:
         """Connect to MongoDB Atlas"""
         try:
             if not self.mongo_uri:
-                logger.warning("MONGO_CARREFOUR_URI not found in environment variables")
+                print_warning("MONGO_CARREFOUR_URI not found in environment variables")
                 return False
 
             self.mongo_client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=5000)
             # Test the connection
             self.mongo_client.admin.command('ping')
-            self.db = self.mongo_client.carrefour  # Database name from URI
-            logger.info("Connected to MongoDB Atlas successfully")
+            # Assign the database
+            self.db = self.mongo_client['carrefour']
+            print_success("Connected to MongoDB Atlas successfully")
             return True
         except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
+            print_error(f"Failed to connect to MongoDB: {e}")
             return False
 
     def disconnect_mongodb(self):
         """Disconnect from MongoDB"""
         if self.mongo_client:
             self.mongo_client.close()
-            logger.info("Disconnected from MongoDB")
+            print_info("Disconnected from MongoDB")
 
     def setup_driver(self):
         """Configure Edge WebDriver with appropriate options"""
@@ -86,6 +117,11 @@ class CarrefourSupermarketInfoScraper:
             options.add_argument("--disable-images")  # Speed up loading
             options.add_argument("--disable-javascript")  # We need JS for dynamic content
             options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            # Suppress Chromium error messages
+            options.add_argument("--log-level=3")
+            options.add_argument("--disable-logging")
+            options.add_argument("--silent")
+            options.add_argument("--disable-dev-tools")
 
             self.driver = webdriver.Edge(options=options)
             self.driver.maximize_window()
@@ -94,7 +130,7 @@ class CarrefourSupermarketInfoScraper:
             self.driver.set_page_load_timeout(self.wait_timeout)
             self.wait = WebDriverWait(self.driver, self.wait_timeout)
 
-            logger.info("WebDriver configured successfully")
+            print_success("WebDriver configured successfully")
         except Exception as e:
             logger.error(f"Failed to setup WebDriver: {e}")
             raise
@@ -114,31 +150,35 @@ class CarrefourSupermarketInfoScraper:
                 if name and content:
                     meta_tags[name] = content
 
-            # Extract logo URL
-            logo_url = None
+            # Extract logo URL - Use known Carrefour logo URL
+            logo_url = "https://logos-world.net/wp-content/uploads/2020/12/Carrefour-Logo.png"
+            
+            # Extract isoLogo URL dynamically from HTML
+            iso_logo_url = None
             try:
-                # Look for logo in various selectors
-                logo_selectors = [
-                    "img[alt*='Carrefour']",
-                    "img[src*='logo']",
-                    ".logo img",
-                    "[class*='logo'] img"
-                ]
-                for selector in logo_selectors:
-                    try:
-                        logo_element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                        logo_url = logo_element.get_attribute("src")
-                        if logo_url:
-                            break
-                    except:
-                        continue
+                # Get the full page source
+                page_source = self.driver.page_source
+
+                # Look for Carrefour isotipo pattern: carrefourar.vtexassets.com/assets/vtex/assets-builder/carrefourar.theme/[version]/logo/isotipo.svg
+                iso_logo_pattern = r'https://carrefourar\.vtexassets\.com/assets/vtex/assets-builder/carrefourar\.theme/[\d.]+/logo/isotipo\.svg'
+                iso_logo_match = re.search(iso_logo_pattern, page_source)
+                if iso_logo_match:
+                    iso_logo_url = iso_logo_match.group(0)
+                else:
+                    # Fallback: look for any isotipo.svg URL
+                    fallback_pattern = r'https://[^"]*isotipo\.svg'
+                    fallback_match = re.search(fallback_pattern, page_source)
+                    if fallback_match:
+                        iso_logo_url = fallback_match.group(0)
+
             except Exception as e:
-                logger.warning(f"Could not extract logo: {e}")
+                logger.warning(f"Could not extract isoLogo: {e}")
 
             return {
                 "name": "Carrefour",
                 "website": self.base_url,
                 "logo": logo_url,
+                "isoLogo": iso_logo_url,
                 "title": title,
                 "meta_tags": meta_tags
             }
@@ -338,7 +378,7 @@ class CarrefourSupermarketInfoScraper:
     def scrape_supermarket_info(self):
         """Main scraping function"""
         try:
-            logger.info("Starting Carrefour supermarket info scraping")
+            print_info("Starting Carrefour supermarket info scraping")
 
             # Connect to MongoDB
             mongo_connected = self.connect_mongodb()
@@ -347,7 +387,7 @@ class CarrefourSupermarketInfoScraper:
             self.setup_driver()
 
             # Navigate to homepage
-            logger.info(f"Navigating to {self.base_url}")
+            print_info(f"Navigating to {self.base_url}")
             self.driver.get(self.base_url)
 
             # Wait for page to load
@@ -371,6 +411,7 @@ class CarrefourSupermarketInfoScraper:
                 "code": "carrefour",
                 "name": basic_info.get("name", "Carrefour"),
                 "logo": basic_info.get("logo"),
+                "isoLogo": basic_info.get("isoLogo"),
                 "website": basic_info.get("website", self.base_url),
                 "country": geographic_info.get("country"),
                 "language": geographic_info.get("language"),
@@ -404,13 +445,13 @@ class CarrefourSupermarketInfoScraper:
             if mongo_connected:
                 mongo_saved = self.save_to_mongodb(supermarket_data)
                 if mongo_saved:
-                    logger.info("Data saved to MongoDB Atlas successfully")
+                    print_success("Data saved to MongoDB Atlas successfully")
                 else:
-                    logger.warning("Failed to save data to MongoDB Atlas")
+                    print_error("Failed to save data to MongoDB Atlas")
             else:
-                logger.warning("MongoDB not connected - data only saved to JSON")
+                print_warning("MongoDB not connected - data only saved to JSON")
 
-            logger.info("Supermarket info scraping completed successfully")
+            print_success("Supermarket info scraping completed successfully")
             return supermarket_data
 
         except Exception as e:
@@ -430,17 +471,21 @@ class CarrefourSupermarketInfoScraper:
         try:
             collection = self.db['supermarket-info']
 
-            # Upsert: update if exists, insert if not (based on code field)
-            result = collection.replace_one(
-                {'code': data['code']},  # Filter by code field
-                data,  # Replacement document
-                upsert=True  # Insert if not exists
-            )
+            # Check if document already exists
+            existing_doc = collection.find_one({'code': data['code']})
 
-            if result.upserted_id:
-                logger.info(f"Inserted new document with ID: {result.upserted_id}")
+            if existing_doc:
+                # Update existing document (exclude _id from update)
+                update_data = {k: v for k, v in data.items() if k != '_id'}
+                result = collection.update_one(
+                    {'code': data['code']},
+                    {'$set': update_data}
+                )
+                print_success(f"Updated existing document with code: {data['code']}")
             else:
-                logger.info(f"Updated existing document with code: {data['code']}")
+                # Insert new document (include _id)
+                result = collection.insert_one(data)
+                print_success(f"Inserted new document with ID: {result.inserted_id}")
 
             return True
         except Exception as e:
@@ -456,7 +501,7 @@ class CarrefourSupermarketInfoScraper:
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False, default=str)
-            logger.info(f"Data saved to {filename}")
+            print_success(f"Data saved to {filename}")
         except Exception as e:
             logger.error(f"Failed to save data to JSON: {e}")
 
@@ -467,9 +512,6 @@ def main():
     try:
         # Scrape supermarket info
         data = scraper.scrape_supermarket_info()
-
-        # Save to JSON
-        scraper.save_to_json(data)
 
         # Print summary
         print("\n=== Carrefour Supermarket Info Scraped ===")

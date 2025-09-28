@@ -4,6 +4,7 @@ const supermarketSchema = new mongoose.Schema({
   _id: { type: String, required: true }, // Usar string personalizado como ID
   name: { type: String, required: true },
   logo: { type: String },
+  isoLogo: { type: String }, // Isotipo/logo alternativo
   website: { type: String },
 
   // Información geográfica y regional
