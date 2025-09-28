@@ -96,8 +96,7 @@ def crawl_dia(output_dir):
         specific_urls = {
             "home": f"{base_url}/",
             "categoria_almacen": f"{base_url}/almacen",
-            "producto_ejemplo": f"{base_url}/arroz-largo-fino-ala-1-kg-25417/p",
-            "medios_pago_promociones": f"{base_url}/medios-de-pago-y-promociones"
+            "producto_ejemplo": f"{base_url}/arroz-largo-fino-ala-1-kg-25417/p"
         }
 
         # Extraer outerHTML de URLs específicas

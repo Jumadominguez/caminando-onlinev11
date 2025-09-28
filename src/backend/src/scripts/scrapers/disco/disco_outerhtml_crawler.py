@@ -96,8 +96,7 @@ def crawl_disco(output_dir):
         specific_urls = {
             "home": f"{base_url}/",
             "categoria_almacen": f"{base_url}/almacen",
-            "producto_ejemplo": f"{base_url}/yerba-mate-playadito-suave-1-kg/p",
-            "ofertas": f"{base_url}/ofertas"
+            "producto_ejemplo": f"{base_url}/yerba-mate-playadito-suave-1-kg/p"
         }
 
         # Extraer outerHTML de URLs específicas

@@ -57,7 +57,7 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 
 #### Fase de Prototipado (Sandbox/Prototypes/)
 - Creación de crawler simplificado con URLs directas
-- Extracción de home, categoría almacen, producto ejemplo y medios de pago/promociones
+- Extracción de home, categoría almacen, producto ejemplo
 
 #### Integración Final
 - Movimiento del script a `src/backend/src/scripts/scrapers/dia/dia_outerhtml_crawler.py`
@@ -65,7 +65,7 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Creación de documentación en `Library/archivos/dia_outerhtml_crawler.py.md`
 
 #### Testing
-- Ejecución exitosa con extracción de 4 archivos HTML
+- Ejecución exitosa con extracción de 3 archivos HTML
 - Validación de outerHTML completo para cada página
 - Verificación de funcionamiento en producción
 
@@ -111,7 +111,7 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 
 #### Fase de Prototipado (Sandbox/Prototypes/)
 - Creación de crawler simplificado con URLs directas
-- Extracción de home, categoría almacen, producto ejemplo y ofertas
+- Extracción de home, categoría almacen, producto ejemplo
 - Integración del vault system desde el inicio
 
 #### Integración Final
@@ -121,7 +121,7 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Creación de documentación en `Library/archivos/disco_outerhtml_crawler.py.md`
 
 #### Testing
-- Ejecución exitosa con extracción de 4 archivos HTML
+- Ejecución exitosa con extracción de 3 archivos HTML
 - Validación de outerHTML completo para cada página
 - Verificación de funcionamiento del vault system
 

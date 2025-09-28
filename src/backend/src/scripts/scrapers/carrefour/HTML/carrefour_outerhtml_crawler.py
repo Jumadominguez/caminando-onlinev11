@@ -118,8 +118,7 @@ def crawl_carrefour(output_dir):
         specific_urls = {
             "home": f"{base_url}/",
             "categoria_almacen": f"{base_url}/Almacen",
-            "producto_ejemplo": f"{base_url}/aceite-de-girasol-carrefour-classic-alto-omega-pet-900-cc-699030-699030/p",
-            "ofertas": f"{base_url}/promociones"
+            "producto_ejemplo": f"{base_url}/aceite-de-girasol-carrefour-classic-alto-omega-pet-900-cc-699030-699030/p"
         }
 
         # Extraer outerHTML de URLs específicas

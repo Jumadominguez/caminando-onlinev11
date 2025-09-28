@@ -1,4 +1,4 @@
-FEAT: 4
+FEAT: 5
 FIX: 0
 REFACTOR: 1
 DOC: 1
