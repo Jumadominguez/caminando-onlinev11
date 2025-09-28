@@ -94,8 +94,6 @@ const userSessionSchema = new mongoose.Schema({
 
 // Índices
 userSessionSchema.index({ userId: 1, isActive: 1 });
-userSessionSchema.index({ sessionToken: 1 }, { unique: true });
-userSessionSchema.index({ refreshToken: 1 }, { unique: true, sparse: true });
 userSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 userSessionSchema.index({ lastActivity: -1 });
 userSessionSchema.index({ 'deviceInfo.ipAddress': 1 });

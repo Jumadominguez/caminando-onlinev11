@@ -110,7 +110,6 @@ const orderSchema = new mongoose.Schema({
 
 // Índices para optimizar consultas
 orderSchema.index({ userId: 1, createdAt: -1 });
-orderSchema.index({ orderNumber: 1 }, { unique: true });
 orderSchema.index({ status: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ 'items.supermarketId': 1 });

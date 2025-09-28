@@ -5,6 +5,7 @@ const ProductType = require('./ProductType');
 const PriceHistory = require('./PriceHistory');
 const Filter = require('./Filter');
 const Offer = require('./Offer');
+const Supermarket = require('./supermarkets');
 
 module.exports = {
   Product,
@@ -13,5 +14,6 @@ module.exports = {
   ProductType,
   PriceHistory,
   Filter,
-  Offer
+  Offer,
+  Supermarket
 };

@@ -151,8 +151,6 @@ const userSchema = new mongoose.Schema({
 });
 
 // Índices para optimizar consultas
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ 'preferences.supermarkets.supermarketId': 1 });
 userSchema.index({ 'favorites.productId': 1 });
 userSchema.index({ role: 1, isActive: 1 });

@@ -9,11 +9,11 @@ const systemRoutes = require('./systemRoutes');
 const supermarketRoutes = require('./supermarketRoutes');
 
 // Mount routes
-router.use('/api/users', userRoutes);
-router.use('/api/products', productRoutes);
-router.use('/api/commerce', commerceRoutes);
-router.use('/api/system', systemRoutes);
-router.use('/api/supermarkets', supermarketRoutes);
+router.use('/users', userRoutes);
+router.use('/products', productRoutes);
+router.use('/commerce', commerceRoutes);
+router.use('/system', systemRoutes);
+router.use('/supermarkets', supermarketRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

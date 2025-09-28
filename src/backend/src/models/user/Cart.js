@@ -97,7 +97,6 @@ const cartSchema = new mongoose.Schema({
 
 // Índices
 cartSchema.index({ userId: 1, isActive: 1 });
-cartSchema.index({ sessionId: 1 }, { unique: true });
 cartSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 cartSchema.index({ 'items.productId': 1 });
 cartSchema.index({ isActive: 1, updatedAt: -1 });

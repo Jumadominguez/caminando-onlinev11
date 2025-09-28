@@ -89,7 +89,6 @@ const systemSettingsSchema = new mongoose.Schema({
 });
 
 // Índices
-systemSettingsSchema.index({ key: 1 }, { unique: true });
 systemSettingsSchema.index({ category: 1, isActive: 1 });
 systemSettingsSchema.index({ isPublic: 1 });
 systemSettingsSchema.index({ tags: 1 });
