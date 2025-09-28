@@ -258,12 +258,55 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Actualización de `proceso.md` con registro completo
 - Documento de desglose del archivo creado
 
+### Feature 2: Scrapers de Supermarket Info para Jumbo y Vea
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Análisis del script base de Disco para replicación
+- Identificación de URLs específicas de logos para cada supermercado
+- Adaptación de URLs base (jumbo.com.ar, vea.com.ar)
+- Configuración de conexiones MongoDB específicas (jumbo, vea)
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Verificación de dependencias Python (pymongo, selenium, etc.)
+- Configuración de entorno virtual y variables de entorno
+- Testing de conexiones MongoDB Atlas
+- Ajustes en timeouts para diferentes sitios web
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de scripts idénticos basados en estructura de Disco
+- Personalización de URLs y configuraciones específicas
+- Validación de extracción de datos para cada supermercado
+- Testing de guardado en bases de datos respectivas
+
+#### Integración Final
+- Movimiento de scripts a directorios respectivos:
+  - `src/backend/src/scripts/scrapers/jumbo/1-jumbo-supermarket-info.py`
+  - `src/backend/src/scripts/scrapers/vea/1-vea-supermarket-info.py`
+- Configuración de variables de entorno MONGO_JUMBO_URI y MONGO_VEA_URI
+- Creación de documentación en `Library/archivos/`
+- Actualización de `registro-archivos.md`
+
+#### Testing
+- Ejecución exitosa de ambos scripts en terminal
+- Validación de conexión MongoDB Atlas
+- Verificación de extracción completa de metadatos
+- Confirmación de guardado en colecciones respectivas
+
+#### Documentación
+- Creación de documentos de desglose para ambos scripts
+- Actualización de `registro-archivos.md` con nuevas entradas
+- Actualización de `proceso.md` con registro completo
+
 ## Próximas Features Planificadas
-1. Scraper de Supermarket Info para Carrefour
-2. Scraper de Categories para Carrefour
-3. Expansión a otros supermercados (Dia, Jumbo, Vea, Disco)
-4. Implementación de checkpoints y procesamiento por chunks
-5. Scrapers jerárquicos completos con anti-detección
+1. Scraper de Supermarket Info para Carrefour ✅ Completado
+2. Scraper de Supermarket Info para Dia
+3. Scraper de Supermarket Info para Disco ✅ Completado
+4. Scraper de Supermarket Info para Jumbo ✅ Completado
+5. Scraper de Supermarket Info para Vea ✅ Completado
+6. Scraper de Categories para Carrefour
+7. Implementación de checkpoints y procesamiento por chunks
+8. Scrapers jerárquicos completos con anti-detección
 
 ## Notas Adicionales
 - Browser utilizado: Microsoft Edge (Chromium-based) por disponibilidad
