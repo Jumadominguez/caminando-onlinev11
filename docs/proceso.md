@@ -1,4 +1,7 @@
-# Proceso de Desarrollo - Caminando Online V11
+# Proceso de Desarrollo - Caminando Onl#### Testing
+- Ejecución exitosa con generación de 5 archivos HTML
+- Validación de outerHTML completo (1.2MB+ por página)
+- Verificación de timestamps y nomenclatura de archivosV11
 
 ## Fecha de Inicio
 Septiembre 28, 2025
@@ -128,6 +131,30 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 #### Documentación
 - Actualización de `proceso.md` con registro completo
 - Documento de desglose del archivo creado
+
+### Feature 5: Eliminación de Páginas de Ofertas
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Identificación de URLs de ofertas inválidas en todos los supermercados
+- Verificación de que {supermercado}.com.ar/ofertas no existe para ninguno
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Eliminación de entradas "ofertas", "promociones", "medios_pago_promociones" de todos los diccionarios specific_urls
+- Actualización de scripts de Carrefour, Día y Disco para extraer solo 3 páginas: home, categoria_almacen, producto_ejemplo
+
+#### Integración Final
+- Modificación de `carrefour_outerhtml_crawler.py`, `dia_outerhtml_crawler.py`, `disco_outerhtml_crawler.py`
+- Actualización de documentación en `Library/archivos/` para todos los scripts
+- Actualización de `proceso.md` con cambios
+
+#### Testing
+- Verificación de que los scripts ahora extraen solo 3 archivos HTML por supermercado
+- Validación de funcionamiento correcto sin errores
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Commit [FEAT-005] con cambios implementados
 
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
