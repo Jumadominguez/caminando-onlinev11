@@ -1,11 +1,31 @@
 import os
 import time
+import shutil
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 
-def extract_outerhtml(driver, url, output_dir, page_name):
+def clean_vault(vault_dir, page_name):
+    """
+    Mantiene solo las 2 versiones más recientes de archivos para un page_name en vault.
+
+    Args:
+        vault_dir (str): Directorio vault.
+        page_name (str): Nombre de la página (e.g., 'home').
+    """
+    prefix = f"{page_name}_"
+    files = [f for f in os.listdir(vault_dir) if f.startswith(prefix) and f.endswith('.html')]
+    
+    if len(files) > 2:
+        # Ordenar por timestamp (YYYYMMDD_HHMMSS en el nombre)
+        files.sort(key=lambda x: x[len(prefix):-5], reverse=True)  # -5 para quitar .html
+        # Mantener los 2 primeros (más recientes), eliminar el resto
+        for old_file in files[2:]:
+            os.remove(os.path.join(vault_dir, old_file))
+            print(f"Eliminado archivo antiguo del vault: {old_file}")
+
+def extract_outerhtml(driver, url, output_dir, vault_dir, page_name):
     """
     Extrae el outerHTML completo de una página web usando Selenium.
 
@@ -13,6 +33,7 @@ def extract_outerhtml(driver, url, output_dir, page_name):
         driver: Instancia de WebDriver.
         url (str): URL de la página a scrapear.
         output_dir (str): Directorio donde guardar el archivo HTML.
+        vault_dir (str): Directorio del vault para archivos antiguos.
         page_name (str): Nombre de la página para el archivo.
     """
     try:
@@ -20,6 +41,15 @@ def extract_outerhtml(driver, url, output_dir, page_name):
         time.sleep(5)  # Esperar a que la página cargue
 
         outer_html = driver.execute_script("return document.documentElement.outerHTML;")
+
+        # Mover archivos existentes al vault
+        if os.path.exists(output_dir):
+            for file in os.listdir(output_dir):
+                if file.startswith(f"{page_name}_") and file.endswith(".html"):
+                    src = os.path.join(output_dir, file)
+                    dst = os.path.join(vault_dir, file)
+                    shutil.move(src, dst)
+                    print(f"Movido al vault: {file}")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{page_name}_{timestamp}.html"
@@ -29,6 +59,10 @@ def extract_outerhtml(driver, url, output_dir, page_name):
             f.write(outer_html)
 
         print(f"OuterHTML extraído: {filepath}")
+
+        # Limpiar vault manteniendo solo 2 versiones
+        clean_vault(vault_dir, page_name)
+
         return filepath
 
     except Exception as e:
@@ -66,6 +100,10 @@ def crawl_carrefour(output_dir):
     Crawling básico de Carrefour para extraer outerHTML de páginas clave.
     """
     base_url = "https://www.carrefour.com.ar"
+    vault_dir = os.path.join(output_dir, "vault")
+
+    # Asegurar que el vault existe
+    os.makedirs(vault_dir, exist_ok=True)
 
     # Configurar Edge
     options = Options()
@@ -86,7 +124,7 @@ def crawl_carrefour(output_dir):
 
         # Extraer outerHTML de URLs específicas
         for name, url in specific_urls.items():
-            extract_outerhtml(driver, url, output_dir, name)
+            extract_outerhtml(driver, url, output_dir, vault_dir, name)
 
     finally:
         driver.quit()

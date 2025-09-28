@@ -47,6 +47,32 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Documento de desglose del archivo creado
 - Registro en `Library/archivos/`
 
+### Feature 2: Scraper de OuterHTML para Día
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo basado en script de Carrefour
+- Adaptación de URLs específicas para Día
+- Configuración de base_url para diaonline.supermercadosdia.com.ar
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de crawler simplificado con URLs directas
+- Extracción de home, categoría almacen, producto ejemplo y medios de pago/promociones
+
+#### Integración Final
+- Movimiento del script a `src/backend/src/scripts/scrapers/dia/dia_outerhtml_crawler.py`
+- Creación de carpeta `HTML/` para archivos generados
+- Creación de documentación en `Library/archivos/dia_outerhtml_crawler.py.md`
+
+#### Testing
+- Ejecución exitosa con extracción de 4 archivos HTML
+- Validación de outerHTML completo para cada página
+- Verificación de funcionamiento en producción
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Documento de desglose del archivo creado
+
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
 2. Scraper de Categories para Carrefour
