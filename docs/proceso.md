@@ -73,6 +73,62 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Actualización de `proceso.md` con registro completo
 - Documento de desglose del archivo creado
 
+### Feature 3: Sistema de Vault para Versionado de HTMLs
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Diseño del sistema de versionado para mantener versiones recientes de HTMLs
+- Creación de función clean_vault() para mantener solo 2 versiones por página
+- Implementación de lógica de movimiento de archivos antiguos al vault
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Integración del vault en scripts de Carrefour y Día
+- Pruebas de movimiento de archivos y limpieza automática
+- Validación de que solo se mantienen versiones recientes en HTML/
+
+#### Integración Final
+- Actualización de `carrefour_outerhtml_crawler.py` con vault system
+- Actualización de `dia_outerhtml_crawler.py` con vault system
+- Creación de carpetas `vault/` en ambas estructuras HTML/
+- Modificación de extract_outerhtml() para incluir vault_dir parameter
+
+#### Testing
+- Ejecución exitosa con movimiento automático de archivos antiguos
+- Validación de que vault mantiene máximo 2 versiones por page_name
+- Verificación de que HTML/ contiene solo las versiones más recientes
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Commit [FEAT-003] con cambios implementados
+
+### Feature 4: OuterHTML Scraper para Disco
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo basado en scripts de Carrefour y Día
+- Adaptación de URLs específicas para Disco
+- Configuración de base_url para disco.com.ar
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de crawler simplificado con URLs directas
+- Extracción de home, categoría almacen, producto ejemplo y ofertas
+- Integración del vault system desde el inicio
+
+#### Integración Final
+- Movimiento del script a `src/backend/src/scripts/scrapers/disco/disco_outerhtml_crawler.py`
+- Creación de carpeta `HTML/` para archivos generados
+- Creación de carpeta `vault/` para versionado
+- Creación de documentación en `Library/archivos/disco_outerhtml_crawler.py.md`
+
+#### Testing
+- Ejecución exitosa con extracción de 4 archivos HTML
+- Validación de outerHTML completo para cada página
+- Verificación de funcionamiento del vault system
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Documento de desglose del archivo creado
+
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
 2. Scraper de Categories para Carrefour
