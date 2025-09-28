@@ -22,7 +22,7 @@ Este archivo implementa un crawler básico para extraer outerHTML completo de p�
    - Define vault_dir = os.path.join(output_dir, "vault")
    - Crea vault_dir si no existe
    - Configura Edge headless
-   - Extrae URLs específicas: home, categoria_almacen, producto_ejemplo
+   - Extrae URLs específicas: home, categoria_almacen, producto_ejemplo, descuentos_dia, descuentos_banco, descuentos_cencopay
 6. En `__main__`, definir output_dir como `HTML/` y ejecutar crawl
 
 ## Fecha de Incorporación

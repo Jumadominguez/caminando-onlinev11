@@ -124,7 +124,7 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Creación de documentación en `Library/archivos/disco_outerhtml_crawler.py.md`
 
 #### Testing
-- Ejecución exitosa con extracción de 3 archivos HTML
+- Ejecución exitosa con extracción de 6 archivos HTML
 - Validación de outerHTML completo para cada página
 - Verificación de funcionamiento del vault system
 
@@ -155,6 +155,30 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 #### Documentación
 - Actualización de `proceso.md` con registro completo
 - Commit [FEAT-005] con cambios implementados
+
+### Feature 6: Páginas Adicionales Carrefour
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Identificación de URLs adicionales útiles para Carrefour
+- Verificación de existencia de páginas de promociones y descuentos bancarios
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Agregar URLs de promociones y descuentos bancarios al diccionario specific_urls
+- Verificar funcionamiento correcto de las nuevas URLs
+
+#### Integración Final
+- Actualización de `carrefour_outerhtml_crawler.py` con 5 páginas en total
+- Testing de funcionamiento con vault system
+
+#### Testing
+- Ejecución exitosa con extracción de 5 archivos HTML
+- Validación de vault system manteniendo versiones
+- Verificación de funcionamiento de todas las URLs
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Commit [FEAT-006] con cambios implementados
 
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
