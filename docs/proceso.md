@@ -180,6 +180,57 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Actualización de `proceso.md` con registro completo
 - Commit [FEAT-006] con cambios implementados
 
+### Feature 7: Páginas de Descuentos Disco
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Identificación de URLs de descuentos específicas para Disco
+- Verificación de existencia de páginas de descuentos por día, banco y CencoPay
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Agregar URLs de descuentos al diccionario specific_urls
+- Verificar funcionamiento correcto de las nuevas URLs
+
+#### Integración Final
+- Actualización de `disco_outerhtml_crawler.py` con 6 páginas en total
+- Testing de funcionamiento con vault system
+
+#### Testing
+- Ejecución exitosa con extracción de 6 archivos HTML
+- Validación de vault system manteniendo versiones
+- Verificación de funcionamiento de todas las URLs de descuentos
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Commit [FEAT-007] con cambios implementados
+
+### Feature 8: OuterHTML Scraper Jumbo
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo basado en scripts de Carrefour, Día y Disco
+- Adaptación de URLs específicas para Jumbo
+- Configuración de base_url para jumbo.com.ar
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de crawler con URLs directas incluyendo descuentos
+- Extracción de home, categoría almacen, producto ejemplo y páginas de descuentos
+- Integración del vault system desde el inicio
+
+#### Integración Final
+- Movimiento del script a `src/backend/src/scripts/scrapers/jumbo/jumbo_outerhtml_crawler.py`
+- Creación de carpeta `HTML/` para archivos generados
+- Creación de carpeta `vault/` para versionado
+
+#### Testing
+- Ejecución exitosa con extracción de 6 archivos HTML
+- Validación de outerHTML completo para cada página
+- Verificación de funcionamiento del vault system
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Documento de desglose del archivo creado
+
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
 2. Scraper de Categories para Carrefour
