@@ -231,6 +231,33 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Actualización de `proceso.md` con registro completo
 - Documento de desglose del archivo creado
 
+### Feature 9: OuterHTML Scraper Vea
+**Fecha de Aprobación**: Septiembre 28, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo basado en patrón establecido por Carrefour, Día, Disco y Jumbo
+- Configuración de URLs específicas para vea.com.ar
+- Implementación del vault system desde el inicio
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de crawler con 6 páginas clave incluyendo descuentos
+- URLs: home, categoria_almacen, producto_ejemplo, descuentos_dia, descuentos_banco, descuentos_cencopay
+- Integración completa del sistema de vault
+
+#### Integración Final
+- Movimiento del script a `src/backend/src/scripts/scrapers/vea/HTML/vea_outerhtml_crawler.py`
+- Creación de directorios `HTML/` y `vault/`
+- Configuración de output_dir y vault_dir
+
+#### Testing
+- Script creado y configurado correctamente
+- Estructura de directorios preparada
+- Sistema de vault implementado
+
+#### Documentación
+- Actualización de `proceso.md` con registro completo
+- Documento de desglose del archivo creado
+
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour
 2. Scraper de Categories para Carrefour
