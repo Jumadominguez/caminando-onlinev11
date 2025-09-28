@@ -2,17 +2,43 @@ const express = require('express');
 const router = express.Router();
 
 // Import route modules
-// const userRoutes = require('./users');
-// const productRoutes = require('./products');
-// const categoryRoutes = require('./categories');
+const userRoutes = require('./userRoutes');
+const productRoutes = require('./productRoutes');
+const commerceRoutes = require('./commerceRoutes');
+const systemRoutes = require('./systemRoutes');
+const supermarketRoutes = require('./supermarketRoutes');
 
-// router.use('/users', userRoutes);
-// router.use('/products', productRoutes);
-// router.use('/categories', categoryRoutes);
+// Mount routes
+router.use('/api/users', userRoutes);
+router.use('/api/products', productRoutes);
+router.use('/api/commerce', commerceRoutes);
+router.use('/api/system', systemRoutes);
+router.use('/api/supermarkets', supermarketRoutes);
 
-// Placeholder route
+// Health check route
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'API is working',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// API info route
 router.get('/', (req, res) => {
-  res.json({ message: 'API is working' });
+  res.json({
+    message: 'Caminando Online API v1.0.0',
+    version: '1.0.0',
+    endpoints: {
+      users: '/api/users',
+      products: '/api/products',
+      commerce: '/api/commerce',
+      system: '/api/system',
+      supermarkets: '/api/supermarkets'
+    },
+    docs: '/api/docs'
+  });
 });
 
 module.exports = router;
