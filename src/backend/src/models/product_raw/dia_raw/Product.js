@@ -116,4 +116,17 @@ productSchema.statics.findByFilters = function(filters) {
   return this.find({ filters: { $in: filters }, isAvailable: true });
 };
 
-module.exports = mongoose.model('Product', productSchema);
+// Usar la conexión específica de dia
+const { dia } = global.databaseConnections || {};
+
+// Si no hay conexión global, crear una temporal (para desarrollo/testing)
+let Product;
+if (dia) {
+  Product = dia.model('Product', productSchema);
+} else {
+  // Fallback para desarrollo - usar conexión por defecto
+  console.warn('⚠️  Dia connection not available, using default connection for Product model');
+  Product = mongoose.model('Product', productSchema);
+}
+
+module.exports = Product;

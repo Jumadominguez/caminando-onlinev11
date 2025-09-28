@@ -85,4 +85,17 @@ subcategorySchema.statics.findByUrl = function(url) {
   return this.findOne({ url: url, active: true });
 };
 
-module.exports = mongoose.model('Subcategory', subcategorySchema);
+// Usar la conexión específica de carrefour
+const { carrefour } = global.databaseConnections || {};
+
+// Si no hay conexión global, crear una temporal (para desarrollo/testing)
+let Subcategory;
+if (carrefour) {
+  Subcategory = carrefour.model('Subcategory', subcategorySchema);
+} else {
+  // Fallback para desarrollo - usar conexión por defecto
+  console.warn('⚠️  Carrefour connection not available, using default connection for Subcategory model');
+  Subcategory = mongoose.model('Subcategory', subcategorySchema);
+}
+
+module.exports = Subcategory;

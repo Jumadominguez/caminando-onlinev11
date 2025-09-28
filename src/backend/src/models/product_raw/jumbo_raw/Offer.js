@@ -105,4 +105,17 @@ offerSchema.methods.appliesToProduct = function(productId, category, subcategory
   return true;
 };
 
-module.exports = mongoose.model('Offer', offerSchema);
+// Usar la conexión específica de jumbo
+const { jumbo } = global.databaseConnections || {};
+
+// Si no hay conexión global, crear una temporal (para desarrollo/testing)
+let Offer;
+if (jumbo) {
+  Offer = jumbo.model('Offer', offerSchema);
+} else {
+  // Fallback para desarrollo - usar conexión por defecto
+  console.warn('⚠️  Jumbo connection not available, using default connection for Offer model');
+  Offer = mongoose.model('Offer', offerSchema);
+}
+
+module.exports = Offer;

@@ -35,4 +35,17 @@ filterSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Filter', filterSchema);
+// Usar la conexión específica de dia
+const { dia } = global.databaseConnections || {};
+
+// Si no hay conexión global, crear una temporal (para desarrollo/testing)
+let Filter;
+if (dia) {
+  Filter = dia.model('Filter', filterSchema);
+} else {
+  // Fallback para desarrollo - usar conexión por defecto
+  console.warn('⚠️  Dia connection not available, using default connection for Filter model');
+  Filter = mongoose.model('Filter', filterSchema);
+}
+
+module.exports = Filter;

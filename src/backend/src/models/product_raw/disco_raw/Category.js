@@ -8,6 +8,7 @@ const categorySchema = new mongoose.Schema({
   icon: { type: String },
   color: { type: String }, // Color para UI
   image: { type: String }, // Imagen de la categoría
+  subcategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' }], // Subcategorías que pertenecen a esta categoría
   priority: { type: Number, default: 0 }, // Orden de prioridad
   active: { type: Boolean, default: true },
   featured: { type: Boolean, default: false }, // Si es categoría destacada
@@ -30,6 +31,7 @@ const categorySchema = new mongoose.Schema({
 categorySchema.index({ active: 1, priority: -1 });
 categorySchema.index({ name: 1 });
 categorySchema.index({ featured: 1 });
+categorySchema.index({ subcategories: 1 }); // Índice para consultas de subcategorías
 
 // Middleware para actualizar updatedAt
 categorySchema.pre('save', function(next) {
@@ -37,4 +39,30 @@ categorySchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Category', categorySchema);
+// Método para obtener subcategorías asociadas con populate
+categorySchema.methods.getSubcategories = function() {
+  return this.populate('subcategories');
+};
+
+// Método para sincronizar array de subcategorías (útil para mantenimiento)
+categorySchema.methods.syncSubcategories = async function() {
+  const Subcategory = mongoose.model('Subcategory');
+  const subcategories = await Subcategory.find({ category: this._id }).select('_id');
+  this.subcategories = subcategories.map(s => s._id);
+  return this.save();
+};
+
+// Usar la conexión específica de disco
+const { disco } = global.databaseConnections || {};
+
+// Si no hay conexión global, crear una temporal (para desarrollo/testing)
+let Category;
+if (disco) {
+  Category = disco.model('Category', categorySchema);
+} else {
+  // Fallback para desarrollo - usar conexión por defecto
+  console.warn('⚠️  Disco connection not available, using default connection for Category model');
+  Category = mongoose.model('Category', categorySchema);
+}
+
+module.exports = Category;

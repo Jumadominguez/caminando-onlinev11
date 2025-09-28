@@ -45,6 +45,7 @@ Este archivo define el modelo de datos para categorías principales de productos
 | Campo | Tipo | Descripción | Ejemplo |
 |-------|------|-------------|---------|
 | `parentCategory` | ObjectId | Categoría padre para jerarquías | `ObjectId(...)` |
+| `subcategories` | Array[ObjectId] | Subcategorías que pertenecen a esta categoría | `[ObjectId(...), ObjectId(...)]` |
 
 ### Metadatos Estadísticos
 | Campo | Tipo | Descripción | Ejemplo |
@@ -69,6 +70,22 @@ Este archivo define el modelo de datos para categorías principales de productos
 categorySchema.index({ active: 1, priority: -1 }); // Categorías activas ordenadas por prioridad
 categorySchema.index({ name: 1 }); // Búsqueda por nombre único
 categorySchema.index({ featured: 1 }); // Categorías destacadas
+categorySchema.index({ subcategories: 1 }); // Consultas de subcategorías asociadas
+```
+
+## Métodos de Instancia
+
+### getSubcategories()
+```javascript
+// Obtiene todas las subcategorías asociadas con populate
+const categoryWithSubcategories = await category.getSubcategories();
+// Retorna la categoría con el array 'subcategories' populado
+```
+
+### syncSubcategories()
+```javascript
+// Sincroniza el array de subcategorías buscando todas las subcategorías que referencian esta categoría
+await category.syncSubcategories(); // Actualiza this.subcategories con los IDs actuales
 ```
 
 ## Ejemplo de Documento Completo
@@ -82,6 +99,10 @@ categorySchema.index({ featured: 1 }); // Categorías destacadas
   "icon": "🥛",
   "color": "#2196F3",
   "image": "https://example.com/lacteos.jpg",
+  "subcategories": [
+    "507f1f77bcf86cd799439011",
+    "507f1f77bcf86cd799439012"
+  ],
   "priority": 10,
   "active": true,
   "featured": true,
