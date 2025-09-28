@@ -52,7 +52,38 @@ const supermarketSchema = new mongoose.Schema({
     description: { type: String },
     keywords: [{ type: String }],
     ogImage: { type: String },
-    favicon: { type: String }
+    favicon: { type: String },
+    robots: { type: String }, // Meta robots directive
+    storefront: { type: String }, // Storefront framework
+    copyright: { type: String }, // Copyright holder
+    author: { type: String } // Content author
+  },
+
+  // Políticas y términos legales
+  legalInfo: {
+    termsAndConditions: { type: String }, // URL de términos y condiciones
+    privacyPolicy: { type: String }, // URL de política de privacidad
+    consumerDefense: { type: String }, // URL de defensa del consumidor
+    cookiePolicy: { type: String } // URL de política de cookies
+  },
+
+  // Información de Progressive Web App (PWA)
+  pwa: {
+    enabled: { type: Boolean, default: false },
+    manifest: { type: String }, // URL del manifest.json
+    themeColor: { type: String }, // Color del tema (#005BAA)
+    icons: [{
+      src: { type: String },
+      sizes: { type: String },
+      type: { type: String }
+    }]
+  },
+
+  // Información de cookies y consentimiento
+  cookieConsent: {
+    provider: { type: String }, // Proveedor de gestión de cookies (ej: "OneTrust")
+    privacyUrl: { type: String }, // URL de política de privacidad en cookies
+    consentRequired: { type: Boolean, default: true }
   },
 
   // Estados y timestamps

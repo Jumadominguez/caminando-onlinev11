@@ -1,0 +1,81 @@
+{
+  "_id": "68d947420a39bf2f76ce150f",
+  "code": "carrefour",
+  "name": "Carrefour",
+  "logo": "https://cdn.dynamicyield.com/api/8781555/images/6c655c5d3ed5.png",
+  "website": "https://www.carrefour.com.ar",
+  "country": "ARG",
+  "language": "es-AR",
+  "currency": "ARS",
+  "platform": "VTEX",
+  "platformVersion": "8.136.1",
+  "theme": null,
+  "themeVersion": null,
+  "workspace": "master",
+  "domain": "www.carrefour.com.ar",
+  "charset": "utf-8",
+  "analytics": {
+    "googleAnalytics": null,
+    "googleTagManager": [
+      "GTM-WFHW8H9"
+    ],
+    "facebookPixel": null,
+    "dynamicYield": null,
+    "activityFlow": true
+  },
+  "homepageMetadata": {
+    "title": "Carrefour - Las mejores ofertas en supermercados",
+    "description": "Comprá online con las mejores ofertas, promociones y descuentos en supermercados todas las semanas. Envíos a domicilio dentro de las 24 horas.",
+    "robots": "index,follow",
+    "storefront": "store_framework",
+    "copyright": "Carrefour",
+    "author": "Carrefour"
+  },
+  "legalInfo": {
+    "termsAndConditions": "https://www.carrefour.com.ar/legales",
+    "privacyPolicy": "https://www.carrefour.com.ar/legales",
+    "consumerDefense": "https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario",
+    "cookiePolicy": "https://www.carrefour.com.ar/legales"
+  },
+  "pwa": {
+    "enabled": true,
+    "manifest": "https://www.carrefour.com.ar/pwa/manifest.json",
+    "themeColor": "#005BAA",
+    "icons": [
+      {
+        "src": "https://carrefourar.vtexassets.com/assets/vtex/assets-builder/carrefourar.theme/17.1.1/logo/isotipo.svg",
+        "sizes": "32x32",
+        "type": "image/svg"
+      },
+      {
+        "src": "https://www.carrefour.com.ar/pwa/icons/crf123-80x80.png",
+        "sizes": "80x80",
+        "type": ""
+      },
+      {
+        "src": "https://www.carrefour.com.ar/pwa/icons/crf123-152x152.png",
+        "sizes": "152x152",
+        "type": ""
+      },
+      {
+        "src": "https://www.carrefour.com.ar/pwa/icons/crf123-167x167.png",
+        "sizes": "167x167",
+        "type": ""
+      },
+      {
+        "src": "https://www.carrefour.com.ar/pwa/icons/crf123-180x180.png",
+        "sizes": "180x180",
+        "type": ""
+      }
+    ]
+  },
+  "cookieConsent": {
+    "provider": "OneTrust",
+    "privacyUrl": null,
+    "consentRequired": true
+  },
+  "active": true,
+  "lastHomepageScraped": "2025-09-28 11:33:38.714267",
+  "createdAt": "2025-09-28 11:33:38.714268",
+  "updatedAt": "2025-09-28 11:33:38.714269"
+}
