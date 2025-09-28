@@ -1,5 +1,5 @@
 FEAT: 9
-FIX: 0
+FIX: 1
 REFACTOR: 1
 DOC: 1
 TEST: 0

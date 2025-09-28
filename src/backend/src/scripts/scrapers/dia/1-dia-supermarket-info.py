@@ -23,6 +23,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 import re
 import time
+import requests
 from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -77,7 +78,7 @@ class DiaSupermarketInfoScraper:
         self.base_url = "https://diaonline.supermercadosdia.com.ar"
         self.mongo_uri = os.getenv('MONGO_DIA_URI')
         self.driver = None
-        self.wait_timeout = 30
+        self.wait_timeout = 60  # Increased timeout for Dia website
         self.mongo_client = None
         self.db = None
 
@@ -117,6 +118,11 @@ class DiaSupermarketInfoScraper:
             options.add_argument("--disable-images")  # Speed up loading
             options.add_argument("--disable-javascript")  # We need JS for dynamic content
             options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            # Suppress Chromium error messages
+            options.add_argument("--log-level=3")
+            options.add_argument("--disable-logging")
+            options.add_argument("--silent")
+            options.add_argument("--disable-dev-tools")
 
             self.driver = webdriver.Edge(options=options)
             self.driver.maximize_window()
@@ -145,31 +151,49 @@ class DiaSupermarketInfoScraper:
                 if name and content:
                     meta_tags[name] = content
 
-            # Extract logo URL
+            # Extract logo URL - use the correct footer logo URL
             logo_url = None
             try:
-                # Look for logo in various selectors
-                logo_selectors = [
-                    "img[alt*='DIA']",
-                    "img[src*='logo']",
-                    ".logo img",
-                    "[class*='logo'] img"
-                ]
-                for selector in logo_selectors:
-                    try:
-                        logo_element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                        logo_url = logo_element.get_attribute("src")
-                        if logo_url:
-                            break
-                    except:
-                        continue
+                # Use the correct logo URL that serves as both logo and isoLogo
+                logo_url = "https://diaio.vtexassets.com/assets/vtex/assets-builder/diaio.store/5.0.158/icons/MarcaDiaFooterRedSVG___d7ee6768c4cbbe7a786a6f63a672ca69.svg"
+
+                # Verify the URL exists
+                try:
+                    response = requests.head(logo_url, timeout=5)
+                    if response.status_code != 200:
+                        logger.warning(f"Logo URL returned status {response.status_code}")
+                except:
+                    logger.warning("Could not verify logo URL accessibility")
+
             except Exception as e:
                 logger.warning(f"Could not extract logo: {e}")
+                # Fallback to known logo URL
+                logo_url = "https://diaio.vtexassets.com/assets/vtex/assets-builder/diaio.store/5.0.158/icons/MarcaDiaFooterRedSVG___d7ee6768c4cbbe7a786a6f63a672ca69.svg"
+
+            # Extract isoLogo URL - use the same footer logo URL
+            iso_logo_url = None
+            try:
+                # Use the same logo URL for isoLogo
+                iso_logo_url = "https://diaio.vtexassets.com/assets/vtex/assets-builder/diaio.store/5.0.158/icons/MarcaDiaFooterRedSVG___d7ee6768c4cbbe7a786a6f63a672ca69.svg"
+
+                # Verify the URL exists
+                try:
+                    response = requests.head(iso_logo_url, timeout=5)
+                    if response.status_code != 200:
+                        logger.warning(f"IsoLogo URL returned status {response.status_code}")
+                except:
+                    logger.warning("Could not verify isoLogo URL accessibility")
+
+            except Exception as e:
+                logger.warning(f"Could not extract isoLogo: {e}")
+                # Fallback to known isoLogo URL
+                iso_logo_url = "https://diaio.vtexassets.com/assets/vtex/assets-builder/diaio.store/5.0.158/icons/MarcaDiaFooterRedSVG___d7ee6768c4cbbe7a786a6f63a672ca69.svg"
 
             return {
                 "name": "Dia",
                 "website": self.base_url,
                 "logo": logo_url,
+                "isoLogo": iso_logo_url,
                 "title": title,
                 "meta_tags": meta_tags
             }
@@ -400,8 +424,8 @@ class DiaSupermarketInfoScraper:
             # Wait for page to load
             self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "title")))
 
-            # Give extra time for dynamic content
-            time.sleep(3)
+            # Give extra time for dynamic content (Dia website is slower)
+            time.sleep(5)
 
             # Extract all information
             basic_info = self.extract_basic_info()
@@ -418,6 +442,7 @@ class DiaSupermarketInfoScraper:
                 "code": "dia",
                 "name": basic_info.get("name", "Dia"),
                 "logo": basic_info.get("logo"),
+                "isoLogo": basic_info.get("isoLogo"),
                 "website": basic_info.get("website", self.base_url),
                 "country": geographic_info.get("country"),
                 "language": geographic_info.get("language"),
@@ -523,6 +548,8 @@ def main():
         print("\n=== Dia Supermarket Info Scraped ===")
         print(f"Name: {data.get('name')}")
         print(f"Website: {data.get('website')}")
+        print(f"Logo: {data.get('logo')}")
+        print(f"isoLogo: {data.get('isoLogo')}")
         print(f"Platform: {data.get('platform')} {data.get('platformVersion')}")
         print(f"Theme: {data.get('theme')} {data.get('themeVersion')}")
         print(f"Country: {data.get('country')}, Language: {data.get('language')}, Currency: {data.get('currency')}")
