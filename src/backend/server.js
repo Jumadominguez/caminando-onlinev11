@@ -1,5 +1,37 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+// Función para desencriptar .env si existe .env.encrypted
+function loadEncryptedEnv() {
+  const encryptedPath = path.join(__dirname, '.env.encrypted');
+  const envPath = path.join(__dirname, '.env');
+
+  if (fs.existsSync(encryptedPath) && !fs.existsSync(envPath)) {
+    const ENCRYPTION_KEY = crypto.scryptSync(process.env.ENV_ENCRYPTION_KEY || 'default-key-change-this', 'salt', 32);
+    const ALGORITHM = 'aes-256-cbc';
+
+    try {
+      const encryptedContent = fs.readFileSync(encryptedPath, 'utf8');
+      const parts = encryptedContent.split(':');
+      const iv = Buffer.from(parts[0], 'hex');
+      const encrypted = parts[1];
+      const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+
+      fs.writeFileSync(envPath, decrypted);
+      console.log('🔓 .env desencriptado desde .env.encrypted');
+    } catch (error) {
+      console.error('❌ Error desencriptando .env:', error.message);
+    }
+  }
+}
+
+loadEncryptedEnv();
+
 const app = require('./src/app');
 
 // 🗄️ Arquitectura Multi-Database - 8 Bases de Datos Separadas

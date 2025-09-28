@@ -1,5 +1,5 @@
 // Controllers para modelos de supermercado (admin database)
-const Supermarket = require('../models/supermarket/Supermarket');
+const Supermarket = require('../models/product/supermarkets');
 
 // ==================== SUPERMARKET CONTROLLERS ====================
 
