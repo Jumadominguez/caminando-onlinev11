@@ -298,6 +298,42 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Actualización de `registro-archivos.md` con nuevas entradas
 - Actualización de `proceso.md` con registro completo
 
+### Feature 3: Scraper de Subcategorías para Carrefour (Nivel 3)
+**Fecha de Aprobación**: Septiembre 29, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo inicial basado en `carrefour_subcategories_scraping_process.md`
+- Implementación de navegación a páginas de categoría
+- Extracción de filtro "Sub-Categoría" con expansión de "Ver más"
+- Desarrollo de lógica de extracción de labels con textContent
+- Implementación de modo test para desarrollo sin BD
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Resolución de problema de GeckoDriver (instalación manual)
+- Corrección de selector global a específico del contenedor Sub-Categoría
+- Reducción de 88/76 labels totales a 38/26 subcategorías específicas
+- Mejora de manejo de botón "Ver más" con JavaScript click
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Validación completa con datos reales de Carrefour
+- Testing de extracción precisa: almacen (38 subcategorías), bebidas (26 subcategorías)
+- Verificación de operaciones simuladas en modo test
+- Logging consolidado por categoría con estadísticas
+
+#### Integración Final
+- Movimiento del script a `Sandbox/Prototypes/3-carrefour-subcategories.py`
+- Creación de documentación en `Library/archivos/3-carrefour-subcategories.py.md`
+- Actualización de registro de archivos y proceso.md
+
+#### Testing
+- Ejecución exitosa en modo test con Firefox + GeckoDriver
+- Validación de extracción específica del filtro Sub-Categoría
+- Verificación de logging consolidado y manejo de errores
+
+#### Documentación
+- Documento de desglose completo del scraper
+- Actualización de `proceso.md` y `registro-archivos.md`
+
 ## Próximas Features Planificadas
 1. Scraper de Supermarket Info para Carrefour ✅ Completado
 2. Scraper de Supermarket Info para Dia
@@ -305,8 +341,9 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 4. Scraper de Supermarket Info para Jumbo ✅ Completado
 5. Scraper de Supermarket Info para Vea ✅ Completado
 6. Scraper de Categories para Carrefour
-7. Implementación de checkpoints y procesamiento por chunks
-8. Scrapers jerárquicos completos con anti-detección
+7. **Scraper de Subcategorías para Carrefour ✅ Completado**
+8. Implementación de checkpoints y procesamiento por chunks
+9. Scrapers jerárquicos completos con anti-detección
 
 ## Notas Adicionales
 - Browser utilizado: Microsoft Edge (Chromium-based) por disponibilidad

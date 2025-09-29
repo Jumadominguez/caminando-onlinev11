@@ -1,0 +1,13 @@
+Vanis a enpezar con el nivel 3 de los scrapers. El scraping de subcategories. Nos vamos a enfocar en el scraping de carrefour hasta que este terminado antes de pasar al siguiente supermercado. Vamos a trabajar en el entorno Sandbox hasta que yo te pida moverlo fuera porque yo considere que este terminado.
+
+Hasta el momento en otros experimentos pasados logre hacerlo funcionar iterando y repitiendo el proceso individualmente por cada categoria, pero creo que se puede realizar de una manera mucho mas eficiente y rapida.
+
+Vamos a empezar desarrollando primero un .md que explique el proceso detalladamente, realizar las mejoras ahi y luego vamos a pasar a desarrllar el script. Vamos a ir paso a paso, yo te voy a ir guiando. En la primera etapa enfoquemonos en un script que haga solamente lo siguiente:
+
+El script debe mirar en la base de datos cuales son las categorias que se encuentran en la coleccion categories de la base de datos carrefour, luego entrar a los URL de cada una de esas categorias, luego ubicar y hacer click en este elemento: <div class="valtech-carrefourar-search-result-3-x-filter__container bb b--muted-4 valtech-carrefourar-search-result-3-x-filter__container--category-3"><div class="valtech-carrefourar-search-result-3-x-filter pv5 valtech-carrefourar-search-result-3-x-filterAvailable"><div role="button" tabindex="0" class="pointer outline-0" aria-disabled="false"><div class="valtech-carrefourar-search-result-3-x-filterTitle"><span class="valtech-carrefourar-search-result-3-x-filterTitleSpan">Sub-Categoría</span> para que se expanda. El elemento "Sub-Categoría" se encuentra dentro de este contenedor: <div class="valtech-carrefourar-search-result-3-x-filtersContainer"><div class=" valtech-carrefourar-search-result-3-x-filtersWrapper"><div class="valtech-carrefourar-search-result-3-x-filter__container valtech-carrefourar-search-result-3-x-filter__container--title bb b--muted-4">
+
+Una vez que consigue expandir el filtro de Sub-Categoría, debe hacer scroll dentro del elemento hasta el final, para encontrar este button: <button class="valtech-carrefourar-search-result-3-x-seeMoreButton mt2 pv2 bn pointer c-link outline-0">Ver más 18</button> y clickearlo para expandir completamente el filtro de Sub-Categorias.
+
+No lo hagas headless para que yo pueda ver el proceso y comprobar que funciona bien. Enfocate en que el script sea rapido y eficiente. Evita cargar el log de la terminal con mensajes irrelevantes y reduce los tiempos de espera al minimo.
+
+Te deje el OuterHTML de categoria_almacen en el contexto para que puedas analizar la estructura HTML completa del sitio

@@ -113,7 +113,7 @@ class CarrefourSubcategoriesScraper:
 
     def extract_subcategories(self, category_slug):
         """
-        Extract all subcategories for a given category from the expanded filter
+        Extract all subcategories for a given category from the expanded Sub-Categoría filter
 
         Returns:
             list: List of extracted subcategory dictionaries
@@ -121,14 +121,21 @@ class CarrefourSubcategoriesScraper:
         extracted_subcategories = []
 
         try:
-            # Find all subcategory labels
-            logger.info(f"Looking for subcategory labels in category {category_slug}")
-            subcategory_labels = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR,
-                    "label.vtex-checkbox__label.w-100.c-on-base.pointer"))
+            # Find the specific Sub-Categoría filter container first
+            logger.info(f"Looking for Sub-Categoría filter container in category {category_slug}")
+            subcategoria_container = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR,
+                    "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
             )
 
-            logger.info(f"Found {len(subcategory_labels)} potential subcategory elements")
+            # Now find all subcategory labels specifically within this container
+            logger.info(f"Looking for subcategory labels within Sub-Categoría container")
+            subcategory_labels = subcategoria_container.find_elements(
+                By.CSS_SELECTOR,
+                "label.vtex-checkbox__label.w-100.c-on-base.pointer"
+            )
+
+            logger.info(f"Found {len(subcategory_labels)} subcategory labels in Sub-Categoría filter")
 
             for index, label in enumerate(subcategory_labels):
                 try:
