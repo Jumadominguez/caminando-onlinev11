@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-  _id: { type: String, required: true }, // Usar string personalizado como ID
+  // _id será ObjectId generado automáticamente por MongoDB
   name: { type: String, required: true, unique: true }, // Nombre interno único
   displayName: { type: String }, // Nombre para mostrar (opcional, usar name si no existe)
-  slug: { type: String, unique: true }, // Slug para URLs amigables
+  slug: { type: String, required: true, unique: true }, // Slug para URLs amigables (identificador único)
   subcategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' }], // Subcategorías que pertenecen a esta categoría
   active: { type: Boolean, default: true },
   featured: { type: Boolean, default: false }, // Si es categoría destacada
