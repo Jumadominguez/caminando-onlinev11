@@ -33,8 +33,14 @@ Archivos: Sandbox/Experiments/test_categories_products_comparison.py
 2025-09-27 20:00 - REFACTOR - Extender script para procesar todas las 17 categorías
 Archivos: Sandbox/Experiments/test_categories_products_comparison.py
 
-2025-09-27 21:00 - DOC - Corregir flujo de actualización del commit-counter para que sea post-commit
-Archivos: .github/instructions/github-instrucciones.instructions.md
+2025-09-28 12:00 - FEAT - Implementar scraper de categorías para supermercado Dia
+Archivos: src/backend/src/scripts/scrapers/dia/2-dia-categories.py, src/backend/src/scripts/scrapers/carrefour/2-carrefour-categories.py
+
+2025-09-28 13:00 - FEAT - Implementar scraper de categorías para supermercado Disco
+Archivos: Sandbox/Experiments/2-disco-categories.py
+
+2025-09-28 14:00 - FEAT - Implementar scrapers de categorías para Jumbo y Vea con hover
+Archivos: src/backend/src/scripts/scrapers/jumbo/2-jumbo-categories.py, src/backend/src/scripts/scrapers/vea/2-vea-categories.py
 
 ---
 

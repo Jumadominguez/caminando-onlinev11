@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Carrefour Categories Scraper
+Vea Categories Scraper
 Extract categories from menu and save to MongoDB
 """
 
@@ -13,6 +13,7 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
@@ -38,15 +39,15 @@ def connect_mongodb():
     """Connect to MongoDB Atlas"""
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend', '.env'))
 
-    mongo_uri = os.getenv('MONGO_CARREFOUR_URI')
+    mongo_uri = os.getenv('MONGO_VEA_URI')
     if not mongo_uri:
-        print("Error: MONGO_CARREFOUR_URI not found in environment variables")
+        print("Error: MONGO_VEA_URI not found in environment variables")
         return None
 
     try:
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
-        db = client.carrefour
+        db = client.vea
         print("Connected to MongoDB Atlas successfully")
         return db
     except Exception as e:
@@ -123,9 +124,9 @@ def main():
     db = connect_mongodb()
 
     try:
-        # Navigate to Carrefour homepage
-        print("Navigating to Carrefour homepage...")
-        driver.get("https://www.carrefour.com.ar")
+        # Navigate to Vea homepage
+        print("Navigating to Vea homepage...")
+        driver.get("https://www.vea.com.ar")
 
         # Wait for page to load
         wait = WebDriverWait(driver, 10)
@@ -134,37 +135,65 @@ def main():
         print("Page loaded. Waiting...")
         time.sleep(1)
 
-        # Remove modal that blocks clicks
+        # Remove modal that blocks clicks (Vea specific)
         driver.execute_script("""
-            var modal = document.querySelector('.dy-modal-wrapper');
-            if (modal) {
+            // Try to remove common modal/overlay elements for Vea
+            var modals = document.querySelectorAll('[class*="modal"], [class*="overlay"], .dy-modal-wrapper');
+            modals.forEach(function(modal) {
                 modal.remove();
                 console.log('Modal removed');
-            }
-            // Also try to remove any overlay
-            var overlays = document.querySelectorAll('[class*="overlay"], [class*="modal"]');
-            overlays.forEach(function(overlay) {
-                if (overlay !== modal) overlay.remove();
+            });
+
+            // Also try to remove any popup or banner
+            var popups = document.querySelectorAll('[class*="popup"], [class*="banner"]');
+            popups.forEach(function(popup) {
+                if (popup.style.display !== 'none') {
+                    popup.style.display = 'none';
+                }
             });
         """)
 
-        # Find the categories menu button
-        categories_button = driver.find_element(By.CSS_SELECTOR, 'button[data-id="mega-menu-trigger-button"]')
+        # Find the categories menu trigger element (Vea specific - uses hover)
+        # Based on HTML analysis, Vea uses VTEX menu system with hover activation
+        categories_trigger = driver.find_element(By.CSS_SELECTOR, 'li.vtex-menu-2-x-menuItem--header-category .vtex-menu-2-x-styledLink')
 
-        # Use JavaScript click instead of Selenium click
-        driver.execute_script("arguments[0].click();", categories_button)
+        # Use ActionChains to perform hover action
+        actions = ActionChains(driver)
+        actions.move_to_element(categories_trigger).perform()
 
-        print("Menu opened! Extracting categories...")
+        print("Menu hover activated! Waiting for menu to appear...")
 
-        # Wait for menu to fully load
-        time.sleep(2)
+        # Wait for menu to fully load after hover
+        time.sleep(3)
 
-        # Extract categories from the opened menu
+        # Extract categories from the hovered menu (Vea specific selectors)
         categories_data = driver.execute_script(r"""
-            const menuContainer = document.querySelector('.carrefourar-mega-menu-0-x-menuContainer');
-            if (!menuContainer) return [];
+            // Vea specific menu container selectors after hover
+            const menuSelectors = [
+                '.vtex-menu-2-x-menuContainer--category-menu',
+                '[class*="menu"] [class*="container"]'
+            ];
 
-            const categoryLinks = menuContainer.querySelectorAll('li.carrefourar-mega-menu-0-x-menuItem a.carrefourar-mega-menu-0-x-styledLink');
+            let menuContainer = null;
+            for (const selector of menuSelectors) {
+                menuContainer = document.querySelector(selector);
+                if (menuContainer) {
+                    console.log(`Found menu container with selector: ${selector}`);
+                    break;
+                }
+            }
+
+            if (!menuContainer) {
+                console.log('Menu container not found, trying direct category link search');
+                // Fallback: search for category links directly in the page
+                const allCategoryLinks = document.querySelectorAll('a[href*="/"][class*="menu-item-secondary"]');
+                console.log(`Found ${allCategoryLinks.length} potential category links`);
+                menuContainer = { querySelectorAll: () => allCategoryLinks };
+            }
+
+            // Vea specific category link selectors
+            const categoryLinks = menuContainer.querySelectorAll('li.vtex-menu-2-x-menuItem--menu-item-secondary a.vtex-menu-2-x-styledLink');
+
             const categories = [];
 
             function generateSlug(name) {
@@ -190,19 +219,17 @@ def main():
 
                 if (name && url && slug) {
                     categories.push({
-                        // _id will be ObjectId generated automatically by MongoDB
-                        name: name, // Category name (required, unique)
-                        displayName: name, // Display name (same as name for now)
-                        slug: slug, // URL-friendly slug (required, unique)
-                        subcategories: [], // Empty array by default
-                        active: true, // Default to active
-                        featured: true, // Default to featured for visible categories
+                        name: name,
+                        displayName: name,
+                        slug: slug,
+                        subcategories: [],
+                        active: true,
+                        featured: true,
                         metadata: {
-                            productCount: 0, // Default to 0
-                            subcategoryCount: 0, // Default to 0
-                            lastUpdated: null // Will be set when products are updated
+                            productCount: 0,
+                            subcategoryCount: 0,
+                            lastUpdated: null
                         }
-                        // createdAt and updatedAt will be set automatically by Mongoose
                     });
                 }
             });
@@ -210,8 +237,8 @@ def main():
             return categories;
         """)
 
-        # Filter out categories to ignore
-        categories_to_ignore = ["bazar y textil", "indumentaria", "ofertas", "destacados"]
+        # Filter out categories to ignore (Vea specific)
+        categories_to_ignore = ["ofertas", "destacados", "promociones", "inicio", "home", "contacto", "ayuda"]
         filtered_categories = [
             cat for cat in categories_data
             if cat['name'].lower() not in categories_to_ignore
