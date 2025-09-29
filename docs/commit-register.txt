@@ -42,5 +42,8 @@ Archivos: Sandbox/Experiments/2-disco-categories.py
 2025-09-28 14:00 - FEAT - Implementar scrapers de categorías para Jumbo y Vea con hover
 Archivos: src/backend/src/scripts/scrapers/jumbo/2-jumbo-categories.py, src/backend/src/scripts/scrapers/vea/2-vea-categories.py
 
+2025-09-28 15:00 - CHECKPOINT - Completado nivel 2: Scrapers de categorías para todos los supermercados (Carrefour, Dia, Jumbo, Vea, Disco)
+Archivos: Todos los scrapers de categorías movidos a producción
+
 ---
 
