@@ -12,7 +12,9 @@ import json
 import time
 import logging
 import re
+import threading
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
@@ -202,7 +204,7 @@ class CarrefourSubcategoriesScraper:
         match = re.search(r'\((\d+)\)$', label_text.strip())
         return int(match.group(1)) if match else 0
 
-    def extract_subcategories(self, category_slug, category_name):
+    def extract_subcategories(self, category_slug, category_slug_for_db):
         """
         Extract all subcategories for a given category from the expanded Sub-Categoría filter
 
@@ -266,7 +268,7 @@ class CarrefourSubcategoriesScraper:
                         'slug': slug,
                         'url': f'https://www.carrefour.com.ar/{category_slug}?initialMap=c&initialQuery={category_slug}&map=category-1,category-3&query=/{category_slug}/{slug}&searchState',
                         'displayName': name,
-                        'category': category_name,
+                        'category': category_slug_for_db,
                         'priority': index,
                         'active': True,
                         'featured': True,  # Always true when extracted/found
@@ -302,39 +304,130 @@ class CarrefourSubcategoriesScraper:
 
         return extracted_subcategories
 
-    def process_subcategories_for_category(self, category):
+    def process_single_category(self, category, thread_id):
         """
-        Complete processing for a single category: extract, insert/update, and handle removals
+        Process a single category with its own browser instance
+        Returns the category slug and processing result
         """
         category_slug = category.get('slug')
         if not category_slug:
-            logger.error("Category without slug found, skipping")
+            logger.error(f"Thread {thread_id}: Category without slug found, skipping")
+            return category_slug, False
+
+        logger.info(f"Thread {thread_id}: Processing category: {category_slug}")
+
+        # Create a new browser instance for this thread
+        driver = None
+        try:
+            options = Options()
+            options.add_argument("--headless")
+
+            # Anti-detection measures
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.set_preference("dom.webdriver.enabled", False)
+            options.set_preference('useAutomationExtension', False)
+
+            # Use local GeckoDriver
+            geckodriver_path = r"d:\dev\caminando-onlinev11\drivers\geckodriver.exe"
+            service = Service(geckodriver_path)
+            driver = webdriver.Firefox(service=service, options=options)
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+            # Generate URL if not present
+            category_url = category.get('url') or f"https://www.carrefour.com.ar/{category_slug}"
+
+            # Navigate to category page
+            driver.get(category_url)
+
+            # Wait for page to load
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "valtech-carrefourar-search-result-3-x-filter"))
+            )
+
+            # Additional wait for dynamic content
+            time.sleep(3)
+
+            # Find Sub-Categoría filter container
+            subcategoria_container = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR,
+                    "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
+            )
+
+            # Try to expand the filter if needed
+            try:
+                # Look for "Ver más" button
+                ver_mas_button = subcategoria_container.find_element(
+                    By.CSS_SELECTOR,
+                    "button.valtech-carrefourar-search-result-3-x-seeMoreButton"
+                )
+
+                # Scroll to make button visible and ensure it's in viewport
+                driver.execute_script("""
+                    arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+                    arguments[0].focus();
+                """, ver_mas_button)
+                time.sleep(2)
+
+                # Try JavaScript click first (more reliable)
+                try:
+                    driver.execute_script("arguments[0].click();", ver_mas_button)
+                except Exception:
+                    # Fallback to regular click
+                    ver_mas_button.click()
+
+                # Wait for expansion to complete
+                time.sleep(4)
+
+            except NoSuchElementException:
+                logger.info(f"Thread {thread_id}: Sub-Categoría filter appears to be already expanded for {category_slug}")
+
+            # Process subcategories using the shared database connection
+            self._process_subcategories_for_category_threaded(category, driver)
+
+            logger.info(f"Thread {thread_id}: Completed category {category_slug}")
+            return category_slug, True
+
+        except Exception as e:
+            # Handle specific Selenium errors with cleaner messages
+            if "NoSuchElementError" in str(type(e)) or "NoSuchElementError" in str(e):
+                logger.warning(f"Thread {thread_id}: Category {category_slug} has no subcategories or filter not found - skipping")
+            else:
+                logger.error(f"Thread {thread_id}: Failed to process category {category_slug}: {str(e)[:100]}...")
+            return category_slug, False
+        finally:
+            if driver:
+                driver.quit()
+
+    def _process_subcategories_for_category_threaded(self, category, driver):
+        """
+        Process subcategories for a category using a specific driver instance
+        This is a thread-safe version that uses the shared database connection
+        """
+        category_slug = category.get('slug')
+        if not category_slug:
             return
 
-        logger.info(f"Processing subcategories for category: {category_slug}")
-
         # Step 3.2a: Get existing subcategories before processing
-        if self.db is None:
-            # Test mode - simulate existing subcategories
-            existing_slugs = set()
-            logger.info(f"TEST MODE: Simulating existing subcategories check for {category_slug}")
-        else:
-            try:
-                existing_subcategories = list(self.db.subcategories.find(
+        try:
+            # Get category name for backward compatibility
+            category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+            category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+            # Search for existing subcategories by both slug and name (for backward compatibility)
+            existing_subcategories = list(self.db.subcategories.find(
+                {"$or": [
                     {"category": category_slug, "active": True},
-                    {"slug": 1, "_id": 0}
-                ))
-                existing_slugs = set(s['slug'] for s in existing_subcategories)
-            except Exception as e:
-                logger.error(f"Error getting existing subcategories for {category_slug}: {e}")
-                existing_slugs = set()
+                    {"category": category_name, "active": True}
+                ]},
+                {"slug": 1, "_id": 0}
+            ))
+            existing_slugs = set(s['slug'] for s in existing_subcategories)
+        except Exception as e:
+            logger.error(f"Error getting existing subcategories for {category_slug}: {e}")
+            existing_slugs = set()
 
         # Step 3.1 & 3.2b: Extract subcategories and process each one
-        # Get category name from database
-        category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
-        category_name = category_doc.get("name", category_slug) if category_doc else category_slug
-
-        extracted_subcategories = self.extract_subcategories(category_slug, category_name)
+        extracted_subcategories = self._extract_subcategories_threaded(driver, category_slug)
 
         # If no subcategories found, create a default one with same name as category
         if not extracted_subcategories:
@@ -347,7 +440,7 @@ class CarrefourSubcategoriesScraper:
                 'slug': category_slug,
                 'url': f'https://www.carrefour.com.ar/{category_slug}?initialMap=c&initialQuery={category_slug}&map=category-1&query=/{category_slug}&searchState',
                 'displayName': category_name,
-                'category': category_name,
+                'category': category_slug,
                 'priority': 0,
                 'active': True,
                 'featured': True,
@@ -362,60 +455,163 @@ class CarrefourSubcategoriesScraper:
             extracted_subcategories = [default_subcategory]
             logger.info(f"Created default subcategory for category: {category_name}")
 
-        if self.db is None:
-            # Test mode - simulate database operations
-            added_count = len(extracted_subcategories)
-            updated_count = 0
-            removed_count = 0
-            logger.info(f"TEST MODE: Would process {added_count} subcategories for {category_slug}")
-        else:
-            added_count = 0
-            updated_count = 0
+        added_count = 0
+        updated_count = 0
 
-            for subcategory in extracted_subcategories:
-                try:
-                    result = self.db.subcategories.update_one(
+        for subcategory in extracted_subcategories:
+            try:
+                # Get category name for backward compatibility in upsert filter
+                category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+                result = self.db.subcategories.update_one(
+                    {"$or": [
                         {"slug": subcategory['slug'], "category": category_slug},
-                        {"$set": subcategory},
-                        upsert=True
-                    )
+                        {"slug": subcategory['slug'], "category": category_name}
+                    ]},
+                    {"$set": subcategory},
+                    upsert=True
+                )
 
-                    # Count added vs updated
-                    if result.upserted_id:
-                        added_count += 1
-                    elif result.modified_count > 0:
-                        updated_count += 1
+                # Count added vs updated
+                if result.upserted_id:
+                    added_count += 1
+                elif result.modified_count > 0:
+                    updated_count += 1
 
-                except Exception as e:
-                    logger.error(f"Error inserting/updating subcategory {subcategory['slug']}: {e}")
+            except Exception as e:
+                logger.error(f"Error inserting/updating subcategory {subcategory['slug']}: {e}")
 
-            # Step 3.2c: Handle removed subcategories
-            extracted_slugs = set(s['slug'] for s in extracted_subcategories)
-            removed_slugs = list(existing_slugs - extracted_slugs)
+        # Step 3.2c: Handle removed subcategories
+        extracted_slugs = set(s['slug'] for s in extracted_subcategories)
+        removed_slugs = list(existing_slugs - extracted_slugs)
 
-            removed_count = 0
-            if removed_slugs:
-                try:
-                    result = self.db.subcategories.update_many(
+        removed_count = 0
+        if removed_slugs:
+            try:
+                # Get category name for backward compatibility
+                category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+                result = self.db.subcategories.update_many(
+                    {"$or": [
                         {"slug": {"$in": removed_slugs}, "category": category_slug},
-                        {"$set": {
-                            "featured": False,
-                            "metadata.lastUpdated": datetime.now(timezone.utc)
-                        }}
-                    )
-                    removed_count = result.modified_count
-                except Exception as e:
-                    logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
+                        {"slug": {"$in": removed_slugs}, "category": category_name}
+                    ]},
+                    {"$set": {
+                        "featured": False,
+                        "metadata.lastUpdated": datetime.now(timezone.utc)
+                    }}
+                )
+                removed_count = result.modified_count
+            except Exception as e:
+                logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
 
         # Consolidated logging
         logger.info(f"Category {category_slug}: {added_count} added, {updated_count} updated, {removed_count} removed subcategories")
 
-        # NOTE: Category metadata is updated by the categories scraper (2-carrefour-categories.py)
+    def _extract_subcategories_threaded(self, driver, category_slug):
+        """
+        Extract subcategories using a specific driver instance
+        Thread-safe version of extract_subcategories
+        """
+        extracted_subcategories = []
+
+        try:
+            # Find the specific Sub-Categoría filter container first
+            logger.debug(f"Looking for Sub-Categoría filter container in category {category_slug}")
+            subcategoria_container = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR,
+                    "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
+            )
+
+            # Now find all subcategory labels specifically within this container
+            logger.debug(f"Looking for subcategory labels within Sub-Categoría container")
+            subcategory_labels = subcategoria_container.find_elements(
+                By.CSS_SELECTOR,
+                "label.vtex-checkbox__label.w-100.c-on-base.pointer"
+            )
+
+            logger.info(f"Found {len(subcategory_labels)} subcategory labels in Sub-Categoría filter")
+
+            for index, label in enumerate(subcategory_labels):
+                try:
+                    # Try different methods to get text
+                    full_text = ""
+                    try:
+                        # Try textContent first (includes text from hidden elements)
+                        full_text = label.get_attribute('textContent') or ""
+                        if not full_text.strip():
+                            # Fallback to innerText
+                            full_text = label.get_attribute('innerText') or ""
+                        if not full_text.strip():
+                            # Last resort: regular .text
+                            full_text = label.text or ""
+                    except Exception:
+                        full_text = label.text or ""
+
+                    full_text = full_text.strip()
+
+                    if not full_text:
+                        continue
+
+                    # Clean name (remove count in parentheses)
+                    name = re.sub(r'\s*\(\d+\)\s*$', '', full_text).strip()
+
+                    if not name:
+                        continue
+
+                    # Extract product count
+                    product_count = self.extract_product_count(full_text)
+
+                    # Generate slug
+                    slug = self.generate_slug(name)
+
+                    subcategory = {
+                        'name': name,
+                        'slug': slug,
+                        'url': f'https://www.carrefour.com.ar/{category_slug}?initialMap=c&initialQuery={category_slug}&map=category-1,category-3&query=/{category_slug}/{slug}&searchState',
+                        'displayName': name,
+                        'category': category_slug,
+                        'priority': index,
+                        'active': True,
+                        'featured': True,  # Always true when extracted/found
+                        'metadata': {
+                            'productCount': product_count,
+                            'productTypeCount': 0,
+                            'lastUpdated': datetime.now(timezone.utc)
+                        },
+                        'createdAt': datetime.now(timezone.utc),
+                        'updatedAt': datetime.now(timezone.utc)
+                    }
+
+                    extracted_subcategories.append(subcategory)
+
+                except Exception as e:
+                    logger.warning(f"Error processing subcategory label {index}: {e}")
+                    continue
+
+            print_success(f"Extracted {len(extracted_subcategories)} subcategories for category {category_slug}")
+
+        except TimeoutException:
+            logger.error(f"Timeout waiting for subcategory labels in category {category_slug}")
+            # Debug: try to find any checkbox labels on the page
+            try:
+                all_labels = driver.find_elements(By.CSS_SELECTOR, "label")
+                logger.info(f"Found {len(all_labels)} total labels on page")
+                for i, lbl in enumerate(all_labels[:5]):  # Show first 5
+                    logger.info(f"Label {i}: '{lbl.text}' (class: {lbl.get_attribute('class')})")
+            except Exception as e:
+                logger.error(f"Error in debug logging: {e}")
+        except Exception as e:
+            logger.error(f"Error extracting subcategories for {category_slug}: {e}")
+
+        return extracted_subcategories
 
     def run_scraping(self):
-        """Main scraping function with sequential processing"""
+        """Main scraping function with concurrent processing (3 categories at a time)"""
         print_header("Carrefour Subcategories Scraper", "🛒")
-        print_info("Starting Carrefour subcategories scraping with sequential processing (1 category at a time)")
+        print_info("Starting Carrefour subcategories scraping with concurrent processing (8 categories simultaneously)")
 
         # Get categories from database
         categories = self.get_categories_from_db()
@@ -424,85 +620,53 @@ class CarrefourSubcategoriesScraper:
             print_error("No categories found in database")
             return
 
-        # Process all categories (remove testing limit)
-        print_info(f"Processing {len(categories)} categories sequentially")
+        # Filter out "Indumentaria" category
+        categories = [cat for cat in categories if cat.get('name', '').lower() != 'indumentaria']
+        filtered_count = len(categories)
+
+        if len(categories) == 0:
+            print_warning("No categories to process after filtering out 'Indumentaria'")
+            return
+
+                # Process all categories concurrently (8 at a time)
+        print_info(f"Filtered out 'Indumentaria' category. Processing {filtered_count} categories concurrently (8 at a time)")
 
         completed_count = 0
-        for category in categories:
-            try:
-                category_slug = category.get('slug')
-                if not category_slug:
-                    logger.error("Category without slug found, skipping")
-                    continue
+        failed_count = 0
 
-                # Generate URL if not present
-                category_url = category.get('url') or f"https://www.carrefour.com.ar/{category_slug}"
+        # Use ThreadPoolExecutor with 8 workers for concurrent processing
+        # WARNING: High concurrency may cause:
+        # - High memory/CPU usage
+        # - Potential blocking by target website
+        # - System instability
+        # Consider reducing max_workers if issues occur
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            # Submit all tasks
+            future_to_category = {
+                executor.submit(self.process_single_category, category, i % 8 + 1): category
+                for i, category in enumerate(categories)
+            }
 
-                print_action(f"Processing category: {category_slug} ({completed_count + 1}/{len(categories)})")
+            # Process completed tasks as they finish
+            for future in as_completed(future_to_category):
+                category = future_to_category[future]
+                category_slug = category.get('slug', 'unknown')
 
-                # Navigate to category page
-                self.driver.get(category_url)
-
-                # Wait for page to load
-                WebDriverWait(self.driver, 15).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "valtech-carrefourar-search-result-3-x-filter"))
-                )
-
-                # Additional wait for dynamic content
-                time.sleep(3)
-
-                # Find Sub-Categoría filter container
-                subcategoria_container = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR,
-                        "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
-                )
-
-                # Try to expand the filter if needed
                 try:
-                    # Look for "Ver más" button
-                    ver_mas_button = subcategoria_container.find_element(
-                        By.CSS_SELECTOR,
-                        "button.valtech-carrefourar-search-result-3-x-seeMoreButton"
-                    )
+                    slug, success = future.result()
+                    completed_count += 1
 
-                    # Scroll to make button visible and ensure it's in viewport
-                    self.driver.execute_script("""
-                        arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});
-                        arguments[0].focus();
-                    """, ver_mas_button)
-                    time.sleep(2)
+                    if success:
+                        print_success(f"Completed category {slug} ({completed_count}/{len(categories)})")
+                    else:
+                        failed_count += 1
+                        print_warning(f"Failed to process category {slug}")
 
-                    # Try JavaScript click first (more reliable)
-                    try:
-                        self.driver.execute_script("arguments[0].click();", ver_mas_button)
-                    except Exception:
-                        # Fallback to regular click
-                        ver_mas_button.click()
+                except Exception as e:
+                    failed_count += 1
+                    print_error(f"Exception processing category {category_slug}: {str(e)[:100]}...")
 
-                    # Wait for expansion to complete
-                    time.sleep(4)
-
-                except NoSuchElementException:
-                    logger.info(f"Sub-Categoría filter appears to be already expanded for {category_slug}")
-
-                # Process subcategories
-                self.process_subcategories_for_category({"slug": category_slug})
-
-                completed_count += 1
-                print_success(f"Completed category {category_slug} ({completed_count}/{len(categories)})")
-
-                # Respectful delay between categories
-                time.sleep(2)
-
-            except Exception as e:
-                # Handle specific Selenium errors with cleaner messages
-                if "NoSuchElementError" in str(type(e)) or "NoSuchElementError" in str(e):
-                    print_warning(f"Category {category.get('slug', 'unknown')} has no subcategories or filter not found - skipping")
-                else:
-                    print_error(f"Failed to process category {category.get('slug', 'unknown')}: {str(e)[:100]}...")
-                continue
-
-        print_success("Completed subcategories scraping for all categories")
+        print_success(f"Completed subcategories scraping: {completed_count} successful, {failed_count} failed")
         print_separator()
 
     def close(self):
@@ -518,8 +682,8 @@ def main():
     """Main entry point"""
     scraper = None
     try:
-        # Initialize scraper (headless=False for debugging, change to True for production)
-        scraper = CarrefourSubcategoriesScraper(headless=False)
+        # Initialize scraper (headless=True for production, change to False for debugging)
+        scraper = CarrefourSubcategoriesScraper(headless=True)
 
         # Run scraping
         scraper.run_scraping()
