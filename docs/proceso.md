@@ -342,11 +342,84 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 5. Scraper de Supermarket Info para Vea ✅ Completado
 6. Scraper de Categories para Carrefour
 7. **Scraper de Subcategorías para Carrefour ✅ Completado**
-8. Implementación de checkpoints y procesamiento por chunks
-9. Scrapers jerárquicos completos con anti-detección
+8. **Análisis Inteligente de Tipos de Producto ✅ Completado**
+9. Implementación de checkpoints y procesamiento por chunks
+10. Scrapers jerárquicos completos con anti-detección
+
+### Feature 2: Análisis Inteligente de Tipos de Producto
+**Fecha de Aprobación**: Septiembre 29, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo inicial de script básico para extracción de tipos de producto
+- Implementación de Selenium con Firefox para navegación
+- Detección de filtros dinámicos colapsados
+- Primeras pruebas de clasificación por keywords básicos
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Resolución de problemas con expansión de filtros
+- Implementación de JavaScript clicks para elementos obstruidos
+- Activación del botón "Ver más" para mostrar todos los productos
+- Optimización de waits y delays para carga asíncrona
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Desarrollo de algoritmo de clasificación inteligente con keywords específicos
+- Expansión de categorías: Aves, Cerdos, Pescados, Vacunos, Embutidos, Mariscos
+- Mejora iterativa de precisión: reducción de "Otros" del 85% al 9%
+- Validación final con 90 tipos de producto correctamente clasificados
+
+#### Integración Final
+- Movimiento del script a `Sandbox/prototypes/analyze_product_types_for_subcategories.py`
+- Creación de documentación en `Library/archivos/analyze_product_types_for_subcategories.py.md`
+- Actualización del registro de archivos y proceso.md
+
+#### Testing
+- Ejecución exitosa con extracción completa de 90 tipos de producto
+- Validación de clasificación automática en 7 sub-categorías
+- Precisión del 91%: solo 8 productos en categoría "Otros"
+
+#### Documentación
+- Documento de desglose completo del algoritmo de clasificación
+- Registro en `proceso.md` y actualización de estadísticas
 
 ## Notas Adicionales
 - Browser utilizado: Microsoft Edge (Chromium-based) por disponibilidad
 - Patrón: OuterHTML first para análisis offline de selectores
 - Arquitectura: Jerarquía Supermarket → Categories → Subcategories → Products → Offers
 - Anti-detección: Headless mode, user-agent rotation, delays implementados
+
+### Feature 4: Generador Inteligente de Subcategorías
+**Fecha de Aprobación**: Septiembre 29, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo inicial de algoritmo basado en keywords hardcodeadas
+- Identificación de problema: subcategorías demasiado específicas (Chorizos, Supremas)
+- Rediseño completo: eliminación de keywords, implementación de análisis contextual
+- Desarrollo de algoritmos de similitud semántica y clustering inteligente
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Optimización de umbrales de clasificación para reducir productos en "Otros"
+- Implementación de validación de coherencia para evitar clusters incoherentes
+- Refinamiento de estrategias por dominio (animal_type, food_type, beverage_type)
+- Testing exhaustivo con categorías de Carnes y Frutas/Verduras
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Copia del script refinado como `Generador-Subcat-CarVer.py`
+- Validación final: reducción de "Otros" del 40-47% al 1-8%
+- Verificación de subcategorías lógicas intermedias (Vacuno, Porcino, Aves)
+- Testing de integración con MongoDB Atlas
+
+#### Integración Final
+- Archivo aprobado en `Sandbox/prototypes/Generador-Subcat-CarVer.py`
+- Creación de documentación en `Library/archivos/Generador-Subcat-CarVer.py.md`
+- Actualización del registro de archivos en `Library/registro-archivos.md`
+- Preparado para integración en scrapers de producción
+
+#### Testing
+- Validación en categorías Carnes: 6 subcategorías, 7 productos en "Otros" (7.8%)
+- Validación en Frutas/Verduras: 4 subcategorías, 1 producto en "Otros" (1.4%)
+- Verificación de escalabilidad y adaptabilidad automática
+
+#### Documentación
+- Documento de desglose completo del algoritmo inteligente
+- Registro en `proceso.md` con métricas de mejora
+- Actualización de estadísticas de rendimiento
