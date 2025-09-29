@@ -50,6 +50,34 @@ Este documento mantiene un registro de todos los archivos incorporados al proyec
 - **Feature Asociada**: Análisis inteligente de categorías para optimización de estructura de productos
 - **Estado**: Activo
 
+#### Generador-Subcat.py (Prototipo)
+- **Ruta**: `prototipos/generadores/Generador-Subcat.py`
+- **Propósito**: Sistema inteligente de generación automática de subcategorías con aprendizaje iterativo (96.4% precisión)
+- **Fecha de Incorporación**: 29 de septiembre de 2025
+- **Feature Asociada**: Generación inteligente de subcategorías para productos de supermercado
+- **Estado**: Prototipo funcional listo para producción
+
+#### diagnostico_subcategorias.py (Prototipo)
+- **Ruta**: `prototipos/generadores/diagnostico_subcategorias.py`
+- **Propósito**: Herramienta de diagnóstico y análisis para validar subcategorías faltantes
+- **Fecha de Incorporación**: 29 de septiembre de 2025
+- **Feature Asociada**: Validación y diagnóstico del sistema de generación de subcategorías
+- **Estado**: Prototipo funcional
+
+#### learning_knowledge.json (Prototipo)
+- **Ruta**: `prototipos/generadores/learning_knowledge.json`
+- **Propósito**: Base de conocimiento persistente del sistema de aprendizaje iterativo
+- **Fecha de Incorporación**: 29 de septiembre de 2025
+- **Feature Asociada**: Persistencia de conocimiento adquirido durante el aprendizaje
+- **Estado**: Datos de producción
+
+#### RESUMEN_EJECUTIVO_PROYECTO.md (Prototipo)
+- **Ruta**: `prototipos/generadores/RESUMEN_EJECUTIVO_PROYECTO.md`
+- **Propósito**: Documentación completa del proyecto de generación inteligente de subcategorías
+- **Fecha de Incorporación**: 29 de septiembre de 2025
+- **Feature Asociada**: Documentación ejecutiva del sistema de subcategorías
+- **Estado**: Documentación final
+
 #### Generador-Subcat-CarVer.py
 - **Ruta**: `Sandbox/prototypes/Generador-Subcat-CarVer.py`
 - **Propósito**: Generador inteligente de subcategorías para productos de Carrefour (Carnes y Frutas/Verduras)

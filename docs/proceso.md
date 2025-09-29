@@ -423,3 +423,66 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 - Documento de desglose completo del algoritmo inteligente
 - Registro en `proceso.md` con métricas de mejora
 - Actualización de estadísticas de rendimiento
+
+### Feature 3: Sistema Inteligente de Generación de Subcategorías
+**Fecha de Aprobación**: Septiembre 29, 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Desarrollo inicial de algoritmo de clustering semántico (fracasó: 0% precisión)
+- Implementación de mapeo directo por keywords (mejora significativa)
+- Creación de reglas semánticas condicionales para casos edge
+- Desarrollo de sistema de aprendizaje iterativo con 50 iteraciones
+- Optimización de parámetros dinámicos (min_similarity, semantic_weight, etc.)
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Diagnóstico de subcategorías faltantes con script especializado
+- Corrección de reglas semánticas para Jabones, Limpiadores, Lustramuebles
+- Validación cruzada con datos reales de Carrefour
+- Optimización de lógica de puntuación y clasificación
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Integración completa del sistema de aprendizaje
+- Validación de precisión del 96.4% (27/28 subcategorías correctas)
+- Testing exhaustivo con 50 iteraciones de aprendizaje
+- Creación de documentación ejecutiva completa
+
+#### Creación de Prototipo (prototipos/generadores/)
+- Movimiento de archivos esenciales a estructura organizada:
+  - `Generador-Subcat.py`: Sistema principal de aprendizaje
+  - `diagnostico_subcategorias.py`: Herramienta de validación
+  - `learning_knowledge.json`: Base de conocimiento persistente
+  - `RESUMEN_EJECUTIVO_PROYECTO.md`: Documentación completa
+  - `README.md`: Guía de uso y características
+- Estructura modular lista para integración en producción
+
+#### Resultados Finales
+- **Precisión Alcanzada**: 96.4% (27/28 subcategorías correctas)
+- **Productos Clasificados**: 95/160 (59.4% de cobertura)
+- **Subcategorías Faltante**: Solo "Prelavado y quitamanchas" (no disponible en Carrefour)
+- **Iteraciones de Aprendizaje**: 50 ciclos completados con mejora automática
+
+#### Testing
+- Validación completa contra lista de referencia de 28 subcategorías
+- Testing de escalabilidad con múltiples ejecuciones
+- Verificación de persistencia de conocimiento adquirido
+- Validación de funcionamiento independiente del prototipo
+
+#### Documentación
+- Creación de documento de desglose detallado en `Library/archivos/Generador-Subcat.py.md`
+- Resumen ejecutivo completo del proyecto
+- README.md con instrucciones de uso
+- Actualización de `registro-archivos.md` con todos los archivos del prototipo
+- Commit [FEAT-016] con documentación completa del movimiento
+
+#### Estado del Feature
+**✅ COMPLETADO CON ÉXITO**
+- Objetivo del 80% de precisión SUPERADO (96.4%)
+- Sistema completamente funcional y probado
+- Prototipo organizado y documentado
+- Listo para integración en producción (`src/backend/src/scripts/scrapers/`)
+
+#### Próximos Pasos
+1. **Integración en Producción**: Mover a estructura de scrapers oficial
+2. **Dashboard GUI**: Desarrollar interfaz gráfica para control del sistema
+3. **Multi-supermercado**: Extender a Dia, Jumbo, Vea, Disco
+4. **API de Clasificación**: Crear servicio web para uso en tiempo real
