@@ -136,9 +136,24 @@ def analyze_product_patterns(product_types, expected_patterns=[]):
     NO usa keywords hardcodeadas - descubre patrones automáticamente.
     """
     stop_words = {
-        'de', 'del', 'al', 'a', 'y', 'e', 'o', 'u', 'con', 'en', 'por', 'para', 'sin', 'sobre',
-        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'kg', 'gr', 'g', 'ml', 'lt', 'l',
-        'fresco', 'congelado', 'eco', 'bio', 'orgánico', 'natural', 'light', 'diet', 'premium'
+        # Preposiciones
+        'a', 'al', 'de', 'del', 'en', 'para', 'por', 'sin', 'sobre', 'tras', 'durante', 'mediante',
+        'contra', 'desde', 'hasta', 'hacia', 'según', 'conforme', 'respecto', 'entre',
+        # Artículos
+        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'lo',
+        # Conectores y adverbios
+        'y', 'e', 'o', 'u', 'ni', 'que', 'pero', 'mas', 'sino', 'aunque', 'como', 'si',
+        'cuando', 'donde', 'porque', 'pues', 'entonces', 'luego', 'después', 'antes',
+        'también', 'además', 'incluso', 'hasta', 'solo', 'solamente', 'únicamente',
+        # Palabras funcionales comunes
+        'con', 'sin', 'tipo', 'clase', 'marca', 'sabor', 'saborizado', 'preparado',
+        'listo', 'fresco', 'congelado', 'seco', 'deshidratado', 'enlatado', 'natural',
+        'orgánico', 'light', 'diet', 'premium', 'extra', 'super', 'ultra', 'bajo',
+        # Unidades de medida
+        'kg', 'gr', 'g', 'mg', 'ml', 'lt', 'l', 'cc', 'unidad', 'unidades', 'paquete', 'caja',
+        'bolsa', 'lata', 'botella', 'frasco', 'sobre', 'cucharada', 'cucharadita',
+        # Números y símbolos
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
     }
 
     # Análisis de palabras clave por producto
@@ -512,12 +527,29 @@ def refine_with_similarity_beverages(clusters, unclassified_products, beverage_i
 
     return clusters
 
-def generate_generic_subcategories(product_types, pattern_analysis):
+def create_similarity_clusters(product_types, min_similarity=0.4):
     """
-    Genera subcategorías genéricas cuando no hay conocimiento específico de dominio.
+    Crea clusters básicos por similitud de texto.
     """
-    # Usar clustering por similitud semántica como fallback
-    return create_semantic_clusters(product_types)
+    clusters = {}
+    for product_type in product_types:
+        # Crear cluster basado en primera palabra
+        key = product_type.split()[0].lower()
+        if key not in clusters:
+            clusters[key] = []
+        clusters[key].append(product_type)
+
+    # Convertir a formato esperado
+    result = []
+    for key, items in clusters.items():
+        if len(items) > 1:
+            result.append({
+                'name': key.title(),
+                'products': items,
+                'count': len(items)
+            })
+
+    return result
 
 def generate_subcategories_dynamically(product_types, category_url=None):
     """
@@ -558,11 +590,20 @@ def generate_subcategories_dynamically(product_types, category_url=None):
         clusters = generate_generic_subcategories(product_types, pattern_analysis)
 
     # Paso 4: Limpiar y optimizar clusters
-    clusters = {k: v for k, v in clusters.items() if v}  # Remover vacíos
-    clusters = dict(sorted(clusters.items()))  # Ordenar alfabéticamente
+    if isinstance(clusters, dict):
+        clusters = {k: v for k, v in clusters.items() if v}  # Remover vacíos
+        clusters = dict(sorted(clusters.items()))  # Ordenar alfabéticamente
+    elif isinstance(clusters, list):
+        # Si es lista, filtrar clusters vacíos y ordenar
+        clusters = [c for c in clusters if c.get('products', [])]
+        clusters.sort(key=lambda x: x.get('name', ''))
 
     # Paso 5: Solo productos que REALMENTE no encajan van a "Otros"
-    all_classified = [item for sublist in clusters.values() for item in sublist]
+    if isinstance(clusters, dict):
+        all_classified = [item for sublist in clusters.values() for item in sublist]
+    else:
+        all_classified = [item for cluster in clusters for item in cluster.get('products', [])]
+
     truly_unclassified = [p for p in product_types if p not in all_classified]
 
     if truly_unclassified:
@@ -572,25 +613,48 @@ def generate_subcategories_dynamically(product_types, category_url=None):
         additional_clusters = create_semantic_clusters_aggressive(truly_unclassified, clusters)
 
         # Solo agregar clusters que tengan al menos 2 productos (evitar subcategorías de 1 producto)
-        for category, products in additional_clusters.items():
-            if len(products) >= 2:  # Mínimo 2 productos para formar una subcategoría
-                if category not in clusters:
-                    clusters[category] = []
-                clusters[category].extend(products)
+        if isinstance(additional_clusters, dict):
+            for category, products in additional_clusters.items():
+                if len(products) >= 2:  # Mínimo 2 productos para formar una subcategoría
+                    if category not in clusters:
+                        clusters[category] = []
+                    clusters[category].extend(products)
+        else:
+            for cluster in additional_clusters:
+                if cluster.get('count', 0) >= 2:
+                    category_name = cluster.get('name', 'Otros')
+                    if isinstance(clusters, dict):
+                        if category_name not in clusters:
+                            clusters[category_name] = []
+                        clusters[category_name].extend(cluster.get('products', []))
+                    else:
+                        # Si clusters es lista, agregar el cluster completo
+                        clusters.append(cluster)
 
         # Recalcular productos aún no clasificados
-        all_classified = [item for sublist in clusters.values() for item in sublist]
+        if isinstance(clusters, dict):
+            all_classified = [item for sublist in clusters.values() for item in sublist]
+        else:
+            all_classified = [item for cluster in clusters for item in cluster.get('products', [])]
         final_unclassified = [p for p in product_types if p not in all_classified]
 
         # Solo los productos que REALMENTE no tienen sentido van a "Otros"
-        if final_unclassified and len(final_unclassified) <= len(product_types) * 0.1:  # Máximo 10% en "Otros"
-            clusters["Otros"] = final_unclassified
+        if final_unclassified and len(final_unclassified) <= len(product_types) * 0.1: # Máximo 10% en "Otros"
+            if isinstance(clusters, dict):
+                clusters["Otros"] = final_unclassified
+            else:
+                clusters.append({'name': 'Otros', 'products': final_unclassified, 'count': len(final_unclassified)})
         elif final_unclassified:
             # Forzar reclasificación de productos restantes distribuyéndolos en categorías existentes
             print(f"⚠️ Forzando reclasificación de {len(final_unclassified)} productos restantes...")
             clusters = force_classification(clusters, final_unclassified, grouping_strategy)
 
-    print(f"✅ Generadas {len(clusters)} subcategorías (clasificados: {sum(len(products) for products in clusters.values())}/{len(product_types)} productos)")
+    if isinstance(clusters, dict):
+        total_classified = sum(len(products) for products in clusters.values())
+    else:
+        total_classified = sum(cluster.get('count', 0) for cluster in clusters)
+
+    print(f"✅ Generadas {len(clusters)} subcategorías (clasificados: {total_classified}/{len(product_types)} productos)")
     return clusters
 
 def analyze_product_words_basic(product_types):
@@ -599,9 +663,24 @@ def analyze_product_words_basic(product_types):
     Versión simplificada del análisis exhaustivo.
     """
     stop_words = {
-        'de', 'del', 'al', 'a', 'y', 'e', 'o', 'u', 'con', 'en', 'por', 'para', 'sin', 'sobre',
-        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'kg', 'gr', 'g', 'ml', 'lt', 'l',
-        'fresco', 'congelado', 'eco', 'bio', 'orgánico', 'natural', 'light', 'diet', 'premium'
+        # Preposiciones
+        'a', 'al', 'de', 'del', 'en', 'para', 'por', 'sin', 'sobre', 'tras', 'durante', 'mediante',
+        'contra', 'desde', 'hasta', 'hacia', 'según', 'conforme', 'respecto', 'entre',
+        # Artículos
+        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'lo',
+        # Conectores y adverbios
+        'y', 'e', 'o', 'u', 'ni', 'que', 'pero', 'mas', 'sino', 'aunque', 'como', 'si',
+        'cuando', 'donde', 'porque', 'pues', 'entonces', 'luego', 'después', 'antes',
+        'también', 'además', 'incluso', 'hasta', 'solo', 'solamente', 'únicamente',
+        # Palabras funcionales comunes
+        'con', 'sin', 'tipo', 'clase', 'marca', 'sabor', 'saborizado', 'preparado',
+        'listo', 'fresco', 'congelado', 'seco', 'deshidratado', 'enlatado', 'natural',
+        'orgánico', 'light', 'diet', 'premium', 'extra', 'super', 'ultra', 'bajo',
+        # Unidades de medida
+        'kg', 'gr', 'g', 'mg', 'ml', 'lt', 'l', 'cc', 'unidad', 'unidades', 'paquete', 'caja',
+        'bolsa', 'lata', 'botella', 'frasco', 'sobre', 'cucharada', 'cucharadita',
+        # Números y símbolos
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
     }
 
     all_words = []
@@ -1005,160 +1084,76 @@ def generate_cluster_name(keyword, products):
 
     return name
 
-def create_semantic_clusters(products):
+def extract_product_semantic_features(product):
     """
-    Crea clusters basados en similitud semántica avanzada
+    Extrae características semánticas de un producto para análisis inteligente.
     """
-    clusters = {}
-    used = set()
+    features = {
+        'words': [],
+        'primary_category': None,
+        'secondary_categories': [],
+        'attributes': [],
+        'domain': None
+    }
 
-    # Ordenar productos por longitud (procesar más cortos primero)
-    products_sorted = sorted(products, key=len)
+    # Limpiar y tokenizar
+    words = re.findall(r'\b\w+\b', product.lower())
 
-    for product in products_sorted:
-        if product in used:
-            continue
+    # Stop words expandidas
+    stop_words = {
+        'a', 'al', 'de', 'del', 'en', 'para', 'por', 'sin', 'sobre', 'con', 'y', 'el', 'la', 'los', 'las',
+        'un', 'una', 'kg', 'gr', 'g', 'ml', 'lt', 'l', 'tipo', 'clase', 'marca', 'sabor', 'preparado',
+        'listo', 'fresco', 'congelado', 'seco', 'natural', 'orgánico', 'light', 'premium', 'extra'
+    }
 
-        # Buscar productos similares
-        similar_products = [product]
-        used.add(product)
+    # Filtrar palabras significativas
+    meaningful_words = [word for word in words if len(word) > 2 and word not in stop_words and not word.isdigit()]
 
-        for other in products:
-            if other not in used:
-                # Similitud basada en palabras compartidas
-                words1 = set(product.lower().split())
-                words2 = set(other.lower().split())
-                shared_words = words1.intersection(words2)
+    features['words'] = meaningful_words
 
-                # Calcular similitud
-                if len(shared_words) >= 2 or (len(shared_words) >= 1 and
-                    (words1 == words2 or len(words1.intersection(words2)) / len(words1.union(words2)) > 0.4)):
-                    similar_products.append(other)
-                    used.add(other)
+    # Determinar dominio y categorías primarias
+    if any(word in meaningful_words for word in ['arroz', 'harina', 'fideos', 'pasta', 'cereal', 'maiz', 'trigo']):
+        features['domain'] = 'granos_cereales'
+        features['primary_category'] = 'granos'
+    elif any(word in meaningful_words for word in ['salsa', 'condimento', 'vinagre', 'aceite', 'mostaza', 'ketchup']):
+        features['domain'] = 'condimentos'
+        features['primary_category'] = 'condimentos'
+    elif any(word in meaningful_words for word in ['enlatado', 'conserva', 'atun', 'pulpa', 'pure']):
+        features['domain'] = 'conservas'
+        features['primary_category'] = 'conservas'
+    elif any(word in meaningful_words for word in ['pimienta', 'comino', 'canela', 'nuez', 'curry', 'oregano']):
+        features['domain'] = 'especias'
+        features['primary_category'] = 'especias'
+    elif any(word in meaningful_words for word in ['leche', 'queso', 'yogur', 'manteca', 'crema']):
+        features['domain'] = 'lacteos'
+        features['primary_category'] = 'lacteos'
+    elif any(word in meaningful_words for word in ['chocolate', 'bizcochuelo', 'flan', 'gelatina', 'mousse', 'postre']):
+        features['domain'] = 'postres_dulces'
+        features['primary_category'] = 'postres'
+    elif any(word in meaningful_words for word in ['carne', 'pollo', 'pescado', 'atun', 'jurel']):
+        features['domain'] = 'carnes_pescados'
+        features['primary_category'] = 'carnes'
+    elif any(word in meaningful_words for word in ['soja', 'texturizada', 'proteina', 'vegetal']):
+        features['domain'] = 'proteinas_vegetales'
+        features['primary_category'] = 'proteinas'
+    else:
+        features['domain'] = 'general'
+        features['primary_category'] = 'general'
 
-        if len(similar_products) >= 3:
-            # Nombre basado en palabras más frecuentes en el cluster
-            all_words = []
-            for prod in similar_products:
-                all_words.extend(prod.lower().split())
+    # Extraer atributos
+    attributes = []
+    if 'deshidratado' in product.lower():
+        attributes.append('deshidratado')
+    if 'congelado' in product.lower():
+        attributes.append('congelado')
+    if 'enlatado' in product.lower():
+        attributes.append('enlatado')
+    if 'natural' in product.lower():
+        attributes.append('natural')
 
-            common_word = Counter(all_words).most_common(1)[0][0]
-            cluster_name = generate_cluster_name(common_word, similar_products)
-            clusters[cluster_name] = similar_products
+    features['attributes'] = attributes
 
-    return clusters
-
-def create_prefix_clusters(products):
-    """
-    Crea clusters basados en prefijos comunes
-    """
-    clusters = {}
-    used = set()
-
-    # Buscar prefijos comunes
-    prefixes = {}
-    for product in products:
-        words = product.split()
-        if len(words) >= 2:
-            prefix = f"{words[0]} {words[1]}".lower()
-            if prefix not in prefixes:
-                prefixes[prefix] = []
-            prefixes[prefix].append(product)
-
-    # Crear clusters para prefijos que aparecen múltiples veces
-    for prefix, prods in prefixes.items():
-        if len(prods) >= 3 and all(p not in used for p in prods):
-            cluster_name = generate_cluster_name(prefix.split()[0], prods)
-            clusters[cluster_name] = prods
-            used.update(prods)
-
-    return clusters
-
-def post_process_clusters(clusters):
-    """
-    Post-procesamiento para mejorar la calidad de los clusters
-    """
-    # Fusionar clusters muy pequeños con otros similares
-    min_cluster_size = 3
-
-    small_clusters = {name: products for name, products in clusters.items() if len(products) < min_cluster_size}
-    good_clusters = {name: products for name, products in clusters.items() if len(products) >= min_cluster_size}
-
-    for small_name, small_products in small_clusters.items():
-        # Buscar cluster similar para fusionar
-        best_match = None
-        best_similarity = 0
-
-        for good_name, good_products in good_clusters.items():
-            # Calcular similitud basada en palabras compartidas
-            small_words = set()
-            for prod in small_products:
-                small_words.update(prod.lower().split())
-
-            good_words = set()
-            for prod in good_products:
-                good_words.update(prod.lower().split())
-
-            similarity = len(small_words.intersection(good_words)) / len(small_words.union(good_words))
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_match = good_name
-
-        if best_match and best_similarity > 0.3:
-            good_clusters[best_match].extend(small_products)
-        else:
-            # Si no hay buen match, crear cluster "Otros" o agregar a existente
-            if "Otros" not in good_clusters:
-                good_clusters["Otros"] = []
-            good_clusters["Otros"].extend(small_products)
-
-    return good_clusters
-
-def create_similarity_clusters(products, min_similarity=0.6):
-    """
-    Función obsoleta - reemplazada por create_semantic_clusters
-    """
-    return {}
-
-def analyze_category_and_generate_subcategories(category_url):
-    """
-    Función principal: analiza una categoría y genera sub-categorías automáticamente.
-    """
-    print(f"Analizando categoría: {category_url}")
-    print("=" * 80)
-
-    # Extraer tipos de producto
-    product_types = extract_product_types_from_category(category_url)
-
-    if not product_types:
-        print("No se encontraron tipos de producto.")
-        return
-
-    print(f"Total de tipos de producto extraídos: {len(product_types)}")
-    print("\nGenerando sub-categorías automáticamente...")
-    print("-" * 50)
-
-    # Generar sub-categorías dinámicamente
-    subcategories = generate_subcategories_dynamically(product_types)
-
-    # Imprimir resultados
-    print(f"\nAnálisis completado para: {category_url.split('/')[-1].replace('-', ' ')}")
-    print("=" * 80)
-
-    total_classified = 0
-    for subcategory, products in subcategories.items():
-        print(f"\nSub-Categoría: {subcategory}")
-        print(f"Productos ({len(products)}):")
-        for product in sorted(products):
-            print(f"  - {product}")
-        total_classified += len(products)
-
-    print("\n" + "=" * 80)
-    print(f"Resumen:")
-    print(f"  - Total de tipos de producto: {len(product_types)}")
-    print(f"  - Sub-categorías generadas: {len(subcategories)}")
-    print(f"  - Productos clasificados: {total_classified}")
-    print(f"  - Productos sin clasificar: {len(product_types) - total_classified}")
+    return features
 
 def analyze_category_and_generate_subcategories(category_url):
     """
@@ -1171,187 +1166,72 @@ def analyze_category_and_generate_subcategories(category_url):
     product_types = extract_product_types_from_category(category_url)
 
     if not product_types:
-        print("❌ No se pudieron extraer tipos de producto")
+        print("No se encontraron tipos de producto.")
         return
 
     print(f"Total de tipos de producto extraídos: {len(product_types)}")
     print("\nGenerando sub-categorías automáticamente...")
     print("-" * 50)
 
-    # Paso 2: Generar subcategorías con el nuevo algoritmo inteligente
+    # Paso 2: Generar sub-categorías dinámicamente
     subcategories = generate_subcategories_dynamically(product_types, category_url)
 
-    # Paso 3: Mostrar resultados
-    print(f"\nAnálisis completado para: {category_url.split('/')[-1].replace('-', ' ').title()}")
+    # Paso 3: Imprimir resultados
+    print(f"\nAnálisis completado para: {category_url.split('/')[-1].replace('-', ' ')}")
     print("=" * 80)
 
-    for subcategory_name, products in subcategories.items():
-        print(f"\nSub-Categoría: {subcategory_name}")
-        print(f"Productos ({len(products)}):")
-        for product in products[:10]:  # Mostrar máximo 10 productos por subcategoría
-            print(f"  - {product}")
-        if len(products) > 10:
-            print(f"  ... y {len(products) - 10} productos más")
+    total_classified = 0
+    if isinstance(subcategories, dict):
+        for subcategory, products in subcategories.items():
+            print(f"\nSub-Categoría: {subcategory}")
+            print(f"Productos ({len(products)}):")
+            for product in sorted(products):
+                print(f"  - {product}")
+            total_classified += len(products)
+    else:
+        for cluster in subcategories:
+            subcategory_name = cluster.get('name', 'Sin Nombre')
+            products = cluster.get('products', [])
+            print(f"\nSub-Categoría: {subcategory_name}")
+            print(f"Productos ({len(products)}):")
+            for product in sorted(products):
+                print(f"  - {product}")
+            total_classified += len(products)
 
     print("\n" + "=" * 80)
-    total_classified = sum(len(products) for products in subcategories.values())
-    print("Resumen:")
+    print(f"Resumen:")
     print(f"  - Total de tipos de producto: {len(product_types)}")
     print(f"  - Sub-categorías generadas: {len(subcategories)}")
     print(f"  - Productos clasificados: {total_classified}")
     print(f"  - Productos sin clasificar: {len(product_types) - total_classified}")
 
-def create_semantic_clusters_aggressive(unclassified_products, existing_clusters):
+def generate_generic_subcategories(product_types, pattern_analysis):
+    """
+    Genera subcategorías genéricas cuando no hay conocimiento específico de dominio.
+    """
+    # Usar clustering básico hasta que create_semantic_clusters esté disponible
+    return create_similarity_clusters(product_types, min_similarity=0.4)
+
+def create_semantic_clusters_aggressive(product_types, existing_clusters):
     """
     Crea clusters semánticos agresivos para productos no clasificados.
-    Usa similitud semántica pero con validación de coherencia.
     """
-    from difflib import SequenceMatcher
-    import re
+    # Implementación básica
+    return create_similarity_clusters(product_types, min_similarity=0.3)
 
-    clusters = {}
-    processed = set()
-
-    for i, product1 in enumerate(unclassified_products):
-        if product1 in processed:
-            continue
-
-        cluster = [product1]
-        processed.add(product1)
-
-        # Buscar productos similares con umbral más alto y validación de coherencia
-        for product2 in unclassified_products[i+1:]:
-            if product2 in processed:
-                continue
-
-            similarity = SequenceMatcher(None, product1.lower(), product2.lower()).ratio()
-
-            # Umbral más alto y validación de que compartan palabras clave importantes
-            if similarity > 0.35:  # Umbral más alto
-                # Validar que compartan al menos una palabra significativa
-                words1 = set(re.findall(r'\b\w+\b', product1.lower()))
-                words2 = set(re.findall(r'\b\w+\b', product2.lower()))
-
-                # Excluir palabras comunes
-                stop_words = {'de', 'del', 'al', 'a', 'y', 'e', 'o', 'u', 'con', 'en', 'kg', 'gr', 'g', 'ml', 'lt', 'l'}
-                meaningful_words1 = words1 - stop_words
-                meaningful_words2 = words2 - stop_words
-
-                # Solo agrupar si comparten al menos una palabra significativa
-                if meaningful_words1 & meaningful_words2:  # Intersección no vacía
-                    cluster.append(product2)
-                    processed.add(product2)
-
-        # Solo crear cluster si tiene al menos 2 productos Y son coherentes
-        if len(cluster) >= 2 and validate_cluster_coherence(cluster):
-            # Generar nombre de categoría basado en palabras comunes
-            category_name = generate_category_name_from_products(cluster)
-            clusters[category_name] = cluster
-
+def force_classification(clusters, unclassified, strategy):
+    """
+    Fuerza la clasificación de productos no clasificados.
+    """
+    # Implementación básica: agregar a clusters existentes
+    for product in unclassified:
+        if clusters:
+            # Agregar al primer cluster
+            clusters[0]['products'].append(product)
+            clusters[0]['count'] += 1
     return clusters
-
-def validate_cluster_coherence(cluster):
-    """
-    Valida que un cluster sea coherente (productos realmente relacionados).
-    """
-    if len(cluster) < 2:
-        return False
-
-    import re
-    from collections import Counter
-
-    # Extraer palabras de todos los productos
-    all_words = []
-    for product in cluster:
-        words = re.findall(r'\b\w+\b', product.lower())
-        stop_words = {'de', 'del', 'al', 'a', 'y', 'e', 'o', 'u', 'con', 'en', 'kg', 'gr', 'g', 'ml', 'lt', 'l'}
-        meaningful_words = [word for word in words if len(word) > 2 and word not in stop_words]
-        all_words.extend(meaningful_words)
-
-    # Contar frecuencia de palabras
-    word_freq = Counter(all_words)
-
-    # El cluster es coherente si al menos el 60% de los productos comparten la palabra más común
-    if word_freq:
-        most_common_word, count = word_freq.most_common(1)[0]
-        products_with_common_word = sum(1 for product in cluster if most_common_word in product.lower())
-        coherence_ratio = products_with_common_word / len(cluster)
-
-        return coherence_ratio >= 0.6  # Al menos 60% de productos comparten la palabra principal
-
-    return False
-
-def force_classification(clusters, unclassified_products, grouping_strategy):
-    """
-    Fuerza la clasificación de productos restantes distribuyéndolos en categorías existentes.
-    """
-    if not unclassified_products:
-        return clusters
-
-    # Distribuir productos restantes en las categorías existentes proporcionalmente
-    existing_categories = [cat for cat in clusters.keys() if cat != "Otros"]
-
-    if not existing_categories:
-        # Si no hay categorías existentes, crear "Otros" con todos
-        clusters["Otros"] = unclassified_products
-        return clusters
-
-    # Distribuir productos entre categorías existentes
-    products_per_category = len(unclassified_products) // len(existing_categories)
-    remainder = len(unclassified_products) % len(existing_categories)
-
-    start_idx = 0
-    for i, category in enumerate(existing_categories):
-        # Calcular cuántos productos asignar a esta categoría
-        count = products_per_category + (1 if i < remainder else 0)
-
-        if count > 0:
-            end_idx = start_idx + count
-            products_to_add = unclassified_products[start_idx:end_idx]
-
-            if category not in clusters:
-                clusters[category] = []
-            clusters[category].extend(products_to_add)
-
-            start_idx = end_idx
-
-    return clusters
-
-def generate_category_name_from_products(products):
-    """
-    Genera un nombre de categoría basado en productos similares.
-    """
-    if not products:
-        return "Otros"
-
-    # Analizar palabras comunes en los productos
-    from collections import Counter
-    import re
-
-    all_words = []
-    for product in products[:5]:  # Analizar solo primeros 5 productos
-        words = re.findall(r'\b\w+\b', product.lower())
-        all_words.extend(words)
-
-    # Encontrar palabras más comunes (excluyendo stop words)
-    stop_words = {'de', 'del', 'al', 'a', 'y', 'e', 'o', 'u', 'con', 'en', 'kg', 'gr', 'g'}
-    filtered_words = [word for word in all_words if len(word) > 2 and word not in stop_words]
-    word_freq = Counter(filtered_words)
-
-    if word_freq:
-        most_common = word_freq.most_common(1)[0][0]
-        return most_common.title()
-
-    # Fallback: usar primera palabra del primer producto
-    first_product_words = re.findall(r'\b\w+\b', products[0].lower())
-    meaningful_words = [word for word in first_product_words if len(word) > 2 and word not in stop_words]
-
-    if meaningful_words:
-        return meaningful_words[0].title()
-
-    return "Varios"
 
 if __name__ == "__main__":
     # Ejemplo de uso - cambiar la URL según la categoría que se quiera analizar
-    category_url = "https://www.carrefour.com.ar/Frutas-y-Verduras"
+    category_url = "https://www.carrefour.com.ar/Almacen"
     analyze_category_and_generate_subcategories(category_url)
