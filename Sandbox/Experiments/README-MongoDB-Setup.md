@@ -22,9 +22,11 @@ Edita el archivo `.env` en esta carpeta y reemplaza los valores:
 MONGO_CARREFOUR_URI=mongodb+srv://tu_usuario:tu_password@tu_cluster.mongodb.net/carrefour?retryWrites=true&w=majority
 ```
 
-**Ejemplo real:**
+**Nota:** Reemplaza `tu_usuario`, `tu_password` y `tu_cluster` con tus credenciales reales. Nunca commits credenciales reales al repositorio. Usa variables de entorno y asegúrate de que `.env` esté en `.gitignore`.
+
+**Ejemplo de placeholder:**
 ```env
-MONGO_CARREFOUR_URI=mongodb+srv://admin:miClave123@cluster0.abcde.mongodb.net/carrefour?retryWrites=true&w=majority
+MONGO_CARREFOUR_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/carrefour?retryWrites=true&w=majority
 ```
 
 ### 3. Verificar la Configuración
