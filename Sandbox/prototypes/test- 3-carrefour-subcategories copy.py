@@ -7,6 +7,8 @@ Author: GitHub Copilot
 Date: September 29, 2025
 """
 
+import os
+import json
 import time
 import logging
 import re
@@ -20,7 +22,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
 import pymongo
 from pymongo.errors import ConnectionFailure
-import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+try:
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
+    print("Loaded environment variables from .env file")
+except ImportError:
+    print("python-dotenv not installed. Using system environment variables only.")
 
 # ANSI color codes for better terminal visualization
 class Colors:
@@ -33,45 +42,6 @@ class Colors:
     CYAN = '\033[96m'
     WHITE = '\033[97m'
     BOLD = '\033[1m'
-
-# Utility functions for better visualization
-def print_separator(char='=', length=60):
-    """Print a visual separator line"""
-    print(f"{Colors.BLUE}{char * length}{Colors.RESET}")
-
-def print_header(text, emoji=''):
-    """Print a formatted header"""
-    print_separator()
-    print(f"{Colors.BOLD}{Colors.GREEN}{emoji} {text.upper()} {emoji}{Colors.RESET}")
-    print_separator()
-
-def print_success(text):
-    """Print success message"""
-    print(f"{Colors.GREEN}✅ {text}{Colors.RESET}")
-
-def print_warning(text):
-    """Print warning message"""
-    print(f"{Colors.YELLOW}⚠️  {text}{Colors.RESET}")
-
-def print_error(text):
-    """Print error message"""
-    print(f"{Colors.RED}❌ {text}{Colors.RESET}")
-
-def print_info(text):
-    """Print info message"""
-    print(f"{Colors.BLUE}ℹ️  {text}{Colors.RESET}")
-
-def print_action(text):
-    """Print action message"""
-    print(f"{Colors.CYAN}🔄 {text}{Colors.RESET}")
-
-# Load environment variables from .env file
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-    print_info("Loaded environment variables from .env file")
-except ImportError:
-    print_warning("python-dotenv not installed. Using system environment variables only.")
 
 # Custom formatter for colored logging
 class ColoredFormatter(logging.Formatter):
@@ -94,8 +64,8 @@ class ColoredFormatter(logging.Formatter):
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# File handler (no colors for log file)
-file_handler = logging.FileHandler('3-carrefour-subcategories.log')
+# File handler (overwrite mode to avoid old logs)
+file_handler = logging.FileHandler('logs/3-carrefour-subcategories.log', mode='w')
 file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(file_formatter)
 
@@ -138,6 +108,34 @@ def print_action(text):
     """Print action message"""
     print(f"{Colors.CYAN}🔄 {text}{Colors.RESET}")
 
+def generate_slug(text):
+    """Generate slug from text (similar to Subcategory.js method)"""
+    return re.sub(r'[^\w\-]+', '', text.lower().strip().replace(' ', '-')).replace('--+', '-').strip('-')
+
+def connect_mongodb():
+    """Connect to MongoDB Atlas"""
+    try:
+        # Get MongoDB credentials from environment variables
+        mongo_uri = os.getenv('MONGO_CARREFOUR_URI')
+
+        if not mongo_uri:
+            raise ValueError("MONGO_CARREFOUR_URI environment variable not set")
+
+        client = pymongo.MongoClient(mongo_uri)
+        db = client.carrefour
+
+        # Test the connection
+        client.admin.command('ping')
+        print_success("Connected to MongoDB Atlas - carrefour database")
+        return db
+
+    except ConnectionFailure as e:
+        print_error(f"Failed to connect to MongoDB: {e}")
+        raise
+    except Exception as e:
+        print_error(f"Unexpected MongoDB error: {e}")
+        raise
+
 class CarrefourSubcategoriesScraper:
     def __init__(self, headless=False):
         """Initialize the scraper with MongoDB connection and browser setup"""
@@ -153,30 +151,9 @@ class CarrefourSubcategoriesScraper:
 
     def _connect_mongodb(self):
         """Connect to MongoDB Atlas"""
-        try:
-            # Get MongoDB credentials from environment variables
-            mongo_uri = os.getenv('MONGO_CARREFOUR_URI')
-
-            if not mongo_uri or 'your_cluster' in mongo_uri:
-                print_warning("MONGO_CARREFOUR_URI not set or contains placeholder. Running in TEST MODE (no database operations)")
-                self.db = None
-                return
-
-            client = pymongo.MongoClient(mongo_uri)
-            self.db = client.carrefour
-
-            # Test the connection
-            client.admin.command('ping')
-            print_success("Connected to MongoDB Atlas - carrefour database")
-
-        except ConnectionFailure as e:
-            print_error(f"Failed to connect to MongoDB: {e}")
-            print_warning("Running in TEST MODE (no database operations)")
-            self.db = None
-        except Exception as e:
-            print_error(f"Unexpected MongoDB error: {e}")
-            print_warning("Running in TEST MODE (no database operations)")
-            self.db = None
+        self.db = connect_mongodb()
+        if self.db is None:
+            raise ConnectionError("Failed to connect to MongoDB")
 
     def _setup_browser(self):
         """Setup Firefox browser with options"""
@@ -204,24 +181,7 @@ class CarrefourSubcategoriesScraper:
     def get_categories_from_db(self):
         """Retrieve all active categories from MongoDB"""
         if self.db is None:
-            # Test mode - return sample categories
-            print_info("TEST MODE: Using sample categories for testing")
-            return [
-                {
-                    "_id": "test1",
-                    "name": "Lácteos y Productos Frescos",
-                    "slug": "lacteos-y-productos-frescos",
-                    "url": "https://www.carrefour.com.ar/lacteos-y-productos-frescos",
-                    "active": True
-                },
-                {
-                    "_id": "test2",
-                    "name": "Almacén",
-                    "slug": "almacen",
-                    "url": "https://www.carrefour.com.ar/almacen",
-                    "active": True
-                }
-            ]
+            raise ConnectionError("No database connection available")
 
         try:
             categories = list(self.db.categories.find(
@@ -239,7 +199,7 @@ class CarrefourSubcategoriesScraper:
         match = re.search(r'\((\d+)\)$', label_text.strip())
         return int(match.group(1)) if match else 0
 
-    def extract_subcategories(self, category_slug):
+    def extract_subcategories(self, category_slug, category_name):
         """
         Extract all subcategories for a given category from the expanded Sub-Categoría filter
 
@@ -249,90 +209,21 @@ class CarrefourSubcategoriesScraper:
         extracted_subcategories = []
 
         try:
-            # Wait a bit more for dynamic content to load after expansion
-            time.sleep(3)
-
             # Find the specific Sub-Categoría filter container first
             logger.debug(f"Looking for Sub-Categoría filter container in category {category_slug}")
-            subcategoria_container = WebDriverWait(self.driver, 15).until(
+            subcategoria_container = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR,
                     "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
             )
 
-            # Try multiple strategies to find subcategory labels
-            subcategory_labels = []
+            # Now find all subcategory labels specifically within this container
+            logger.debug(f"Looking for subcategory labels within Sub-Categoría container")
+            subcategory_labels = subcategoria_container.find_elements(
+                By.CSS_SELECTOR,
+                "label.vtex-checkbox__label.w-100.c-on-base.pointer"
+            )
 
-            # Strategy 1: Direct CSS selector within container
-            try:
-                labels = subcategoria_container.find_elements(
-                    By.CSS_SELECTOR,
-                    "label.vtex-checkbox__label.w-100.c-on-base.pointer"
-                )
-                if labels:
-                    subcategory_labels = labels
-                    logger.debug(f"Strategy 1: Found {len(labels)} labels using direct selector")
-            except Exception as e:
-                logger.debug(f"Strategy 1 failed: {e}")
-
-            # Strategy 2: Broader selector within container
-            if not subcategory_labels:
-                try:
-                    labels = subcategoria_container.find_elements(
-                        By.CSS_SELECTOR,
-                        "label.vtex-checkbox__label"
-                    )
-                    if labels:
-                        subcategory_labels = labels
-                        logger.debug(f"Strategy 2: Found {len(labels)} labels using broader selector")
-                except Exception as e:
-                    logger.debug(f"Strategy 2 failed: {e}")
-
-            # Strategy 3: Search in entire page for subcategory-related labels
-            if not subcategory_labels:
-                try:
-                    # Look for labels containing subcategory-like text
-                    all_labels = self.driver.find_elements(By.CSS_SELECTOR, "label")
-                    subcategory_labels = []
-                    for label in all_labels:
-                        text = label.text.strip()
-                        if text and len(text) > 2 and not any(char.isdigit() for char in text[-3:]):  # Filter out count labels
-                            # Check if label is within or near the subcategory container
-                            try:
-                                container = label.find_element(By.XPATH, "ancestor::div[contains(@class, 'filter__container--category-3')]")
-                                if container:
-                                    subcategory_labels.append(label)
-                            except:
-                                continue
-
-                    if subcategory_labels:
-                        logger.debug(f"Strategy 3: Found {len(subcategory_labels)} labels using text analysis")
-                except Exception as e:
-                    logger.debug(f"Strategy 3 failed: {e}")
-
-            # Strategy 4: JavaScript approach to get all visible subcategory options
-            if not subcategory_labels:
-                try:
-                    labels = self.driver.execute_script("""
-                        const container = document.querySelector('div.valtech-carrefourar-search-result-3-x-filter__container--category-3');
-                        if (container) {
-                            return Array.from(container.querySelectorAll('label')).filter(label => {
-                                const text = label.textContent.trim();
-                                return text && text.length > 2 && !/\\d$/.test(text);
-                            });
-                        }
-                        return [];
-                    """)
-                    if labels:
-                        subcategory_labels = labels
-                        logger.debug(f"Strategy 4: Found {len(labels)} labels using JavaScript")
-                except Exception as e:
-                    logger.debug(f"Strategy 4 failed: {e}")
-
-            logger.info(f"Total subcategory labels found: {len(subcategory_labels)}")
-
-            if not subcategory_labels:
-                logger.warning(f"No subcategory labels found using any strategy for {category_slug}")
-                return extracted_subcategories
+            logger.info(f"Found {len(subcategory_labels)} subcategory labels in Sub-Categoría filter")
 
             for index, label in enumerate(subcategory_labels):
                 try:
@@ -372,7 +263,7 @@ class CarrefourSubcategoriesScraper:
                         'slug': slug,
                         'url': f'/productos/{category_slug}/{slug}',
                         'displayName': name,
-                        'category': category_slug,
+                        'category': category_name,
                         'priority': index,
                         'active': True,
                         'featured': True,  # Always true when extracted/found
@@ -380,11 +271,12 @@ class CarrefourSubcategoriesScraper:
                             'productCount': product_count,
                             'productTypeCount': 0,
                             'lastUpdated': datetime.now(timezone.utc)
-                        }
+                        },
+                        'createdAt': datetime.now(timezone.utc),
+                        'updatedAt': datetime.now(timezone.utc)
                     }
 
                     extracted_subcategories.append(subcategory)
-                    logger.debug(f"Extracted subcategory {index}: '{name}' (count: {product_count})")
 
                 except Exception as e:
                     logger.warning(f"Error processing subcategory label {index}: {e}")
@@ -392,27 +284,14 @@ class CarrefourSubcategoriesScraper:
 
             print_success(f"Extracted {len(extracted_subcategories)} subcategories for category {category_slug}")
 
-            # Debug: Print first few extracted subcategories
-            if extracted_subcategories:
-                print_info(f"Sample subcategories for {category_slug}:")
-                for i, subcat in enumerate(extracted_subcategories[:5]):
-                    print(f"  {i+1}. {subcat['name']} (slug: {subcat['slug']})")
-                if len(extracted_subcategories) > 5:
-                    print(f"  ... and {len(extracted_subcategories) - 5} more")
-
         except TimeoutException:
             logger.error(f"Timeout waiting for subcategory labels in category {category_slug}")
             # Debug: try to find any checkbox labels on the page
             try:
                 all_labels = self.driver.find_elements(By.CSS_SELECTOR, "label")
                 logger.info(f"Found {len(all_labels)} total labels on page")
-                for i, lbl in enumerate(all_labels[:10]):  # Show first 10
-                    try:
-                        text = lbl.text.strip()
-                        class_attr = lbl.get_attribute('class')
-                        logger.info(f"Label {i}: '{text}' (class: {class_attr})")
-                    except:
-                        logger.info(f"Label {i}: Could not get text/class")
+                for i, lbl in enumerate(all_labels[:5]):  # Show first 5
+                    logger.info(f"Label {i}: '{lbl.text}' (class: {lbl.get_attribute('class')})")
             except Exception as e:
                 logger.error(f"Error in debug logging: {e}")
         except Exception as e:
@@ -448,7 +327,37 @@ class CarrefourSubcategoriesScraper:
                 existing_slugs = set()
 
         # Step 3.1 & 3.2b: Extract subcategories and process each one
-        extracted_subcategories = self.extract_subcategories(category_slug)
+        # Get category name from database
+        category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+        category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+        extracted_subcategories = self.extract_subcategories(category_slug, category_name)
+
+        # If no subcategories found, create a default one with same name as category
+        if not extracted_subcategories:
+            # Get category name from database
+            category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+            category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+            default_subcategory = {
+                'name': category_name,
+                'slug': category_slug,
+                'url': f'/productos/{category_slug}',
+                'displayName': category_name,
+                'category': category_name,
+                'priority': 0,
+                'active': True,
+                'featured': True,
+                'metadata': {
+                    'productCount': 0,
+                    'productTypeCount': 0,
+                    'lastUpdated': datetime.now(timezone.utc)
+                },
+                'createdAt': datetime.now(timezone.utc),
+                'updatedAt': datetime.now(timezone.utc)
+            }
+            extracted_subcategories = [default_subcategory]
+            logger.info(f"Created default subcategory for category: {category_name}")
 
         if self.db is None:
             # Test mode - simulate database operations
@@ -488,7 +397,7 @@ class CarrefourSubcategoriesScraper:
                         {"slug": {"$in": removed_slugs}, "category": category_slug},
                         {"$set": {
                             "featured": False,
-                            "metadata.lastUpdated": datetime.utcnow()
+                            "metadata.lastUpdated": datetime.now(timezone.utc)
                         }}
                     )
                     removed_count = result.modified_count
@@ -498,92 +407,65 @@ class CarrefourSubcategoriesScraper:
         # Consolidated logging
         logger.info(f"Category {category_slug}: {added_count} added, {updated_count} updated, {removed_count} removed subcategories")
 
-        # Step 3.3: Update category metadata
-        if self.db is None:
-            logger.info(f"TEST MODE: Would update category metadata for {category_slug}")
-        else:
+        # NOTE: Category metadata is updated by the categories scraper (2-carrefour-categories.py)
+
+    def run_scraping(self):
+        """Main scraping function with sequential processing"""
+        print_header("Carrefour Subcategories Scraper", "🛒")
+        print_info("Starting Carrefour subcategories scraping with sequential processing (1 category at a time)")
+
+        # Get categories from database
+        categories = self.get_categories_from_db()
+
+        if not categories:
+            print_error("No categories found in database")
+            return
+
+        # Limit to first 3 categories for testing
+        categories = categories[:3]
+        print_info(f"Limited to processing first {len(categories)} categories for testing")
+
+        # Process categories sequentially (1 at a time)
+        print_info(f"Processing {len(categories)} categories sequentially")
+
+        completed_count = 0
+        for category in categories:
             try:
-                total_subcategories = len(extracted_subcategories)
-                self.db.categories.update_one(
-                    {"slug": category_slug},
-                    {"$set": {
-                        "metadata.subcategoryCount": total_subcategories,
-                        "metadata.lastUpdated": datetime.utcnow()
-                    }}
+                category_slug = category.get('slug')
+                if not category_slug:
+                    logger.error("Category without slug found, skipping")
+                    continue
+
+                # Generate URL if not present
+                category_url = category.get('url') or f"https://www.carrefour.com.ar/{category_slug}"
+
+                print_action(f"Processing category: {category_slug} ({completed_count + 1}/{len(categories)})")
+
+                # Navigate to category page
+                self.driver.get(category_url)
+
+                # Wait for page to load
+                WebDriverWait(self.driver, 15).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "valtech-carrefourar-search-result-3-x-filter"))
                 )
-            except Exception as e:
-                logger.error(f"Error updating category metadata for {category_slug}: {e}")
 
-    def expand_subcategoria_filter(self, category_url, category_slug):
-        """
-        Navigate to category URL and expand Sub-Categoría filter by clicking 'Ver más'
-        """
-        try:
-            print_action(f"Navigating to category: {category_url}")
+                # Additional wait for dynamic content
+                time.sleep(3)
 
-            # Navigate to category page
-            self.driver.get(category_url)
-
-            # Wait for page to load
-            WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "valtech-carrefourar-search-result-3-x-filter"))
-            )
-
-            # Additional wait for dynamic content
-            time.sleep(3)
-
-            # First, ensure the Sub-Categoría filter is visible/expanded at the section level
-            try:
-                # Try to click on the Sub-Categoría header to expand the section if needed
-                subcategoria_header = WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH,
-                        "//div[contains(@class, 'filter__container--category-3')]/preceding-sibling::div[contains(@class, 'filter__header')]"))
+                # Find Sub-Categoría filter container
+                subcategoria_container = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR,
+                        "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
                 )
-                if subcategoria_header:
-                    self.driver.execute_script("arguments[0].click();", subcategoria_header)
-                    time.sleep(2)
-                    logger.debug("Clicked Sub-Categoría header to expand section")
-            except Exception:
-                logger.debug("Sub-Categoría section already expanded or header not clickable")
 
-            # Find Sub-Categoría filter container
-            subcategoria_container = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR,
-                    "div.valtech-carrefourar-search-result-3-x-filter__container--category-3"))
-            )
-
-            logger.debug("Found Sub-Categoría filter container")
-
-            # Try to expand the filter if needed - look for "Ver más" button
-            try:
-                # Look for "Ver más" button - try multiple selectors
-                ver_mas_button = None
-
-                # Strategy 1: Direct button selector
+                # Try to expand the filter if needed
                 try:
-                    ver_mas_button = WebDriverWait(self.driver, 3).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR,
-                            "button.valtech-carrefourar-search-result-3-x-seeMoreButton"))
+                    # Look for "Ver más" button
+                    ver_mas_button = subcategoria_container.find_element(
+                        By.CSS_SELECTOR,
+                        "button.valtech-carrefourar-search-result-3-x-seeMoreButton"
                     )
-                except TimeoutException:
-                    # Strategy 2: Button with "Ver más" text
-                    try:
-                        ver_mas_button = WebDriverWait(self.driver, 3).until(
-                            EC.element_to_be_clickable((By.XPATH,
-                                "//button[contains(text(), 'Ver más')]"))
-                        )
-                    except TimeoutException:
-                        # Strategy 3: Any button near the subcategory container
-                        try:
-                            buttons = self.driver.find_elements(By.CSS_SELECTOR, "button")
-                            for btn in buttons:
-                                if "ver más" in btn.text.lower() or "see more" in btn.text.lower():
-                                    ver_mas_button = btn
-                                    break
-                        except Exception:
-                            pass
 
-                if ver_mas_button:
                     # Scroll to make button visible and ensure it's in viewport
                     self.driver.execute_script("""
                         arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});
@@ -594,53 +476,28 @@ class CarrefourSubcategoriesScraper:
                     # Try JavaScript click first (more reliable)
                     try:
                         self.driver.execute_script("arguments[0].click();", ver_mas_button)
-                        logger.debug("Clicked 'Ver más' button using JavaScript")
                     except Exception:
                         # Fallback to regular click
                         ver_mas_button.click()
-                        logger.debug("Clicked 'Ver más' button using Selenium click")
 
                     # Wait for expansion to complete
                     time.sleep(4)
-                else:
-                    logger.info("No 'Ver más' button found - filter might already be expanded")
 
-            except Exception as e:
-                logger.warning(f"Error trying to expand filter: {e}")
+                except NoSuchElementException:
+                    logger.info(f"Sub-Categoría filter appears to be already expanded for {category_slug}")
 
-            # Process subcategories
-            self.process_subcategories_for_category({"slug": category_slug})
+                # Process subcategories
+                self.process_subcategories_for_category({"slug": category_slug})
 
-        except TimeoutException:
-            logger.error(f"Timeout waiting for elements on {category_url}")
-        except ElementClickInterceptedException:
-            logger.error(f"Click intercepted on {category_url}")
-        except Exception as e:
-            logger.error(f"Error processing {category_url}: {e}")
-
-    def run_scraping(self):
-        """Main scraping function"""
-        print_header("Carrefour Subcategories Scraper", "🛒")
-        print_info("Starting Carrefour subcategories scraping")
-
-        # Get categories from database
-        categories = self.get_categories_from_db()
-
-        if not categories:
-            print_error("No categories found in database")
-            return
-
-        # Process each category
-        for category in categories:
-            category_slug = category.get('slug')
-            if category_slug:
-                # Generate URL if not present
-                category_url = category.get('url') or f"https://www.carrefour.com.ar/{category_slug}"
-
-                self.expand_subcategoria_filter(category_url, category_slug)
+                completed_count += 1
+                print_success(f"Completed category {category_slug} ({completed_count}/{len(categories)})")
 
                 # Respectful delay between categories
                 time.sleep(2)
+
+            except Exception as e:
+                print_error(f"Failed to process category {category.get('slug', 'unknown')}: {e}")
+                continue
 
         print_success("Completed subcategories scraping for all categories")
         print_separator()
@@ -650,7 +507,7 @@ class CarrefourSubcategoriesScraper:
         if self.driver:
             self.driver.quit()
             print_info("Browser closed")
-        if hasattr(self, 'db') and self.db:
+        if hasattr(self, 'db') and self.db is not None:
             self.db.client.close()
             logger.info("MongoDB connection closed")
 
@@ -658,7 +515,7 @@ def main():
     """Main entry point"""
     scraper = None
     try:
-        # Initialize scraper (headless=False for visual verification)
+        # Initialize scraper (headless=False for debugging, change to True for production)
         scraper = CarrefourSubcategoriesScraper(headless=False)
 
         # Run scraping

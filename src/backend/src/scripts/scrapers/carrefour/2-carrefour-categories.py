@@ -36,7 +36,7 @@ def generate_slug(name):
 
 def connect_mongodb():
     """Connect to MongoDB Atlas"""
-    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend', '.env'))
+    load_dotenv(dotenv_path=r"d:\dev\caminando-onlinev11\src\backend\.env")
 
     mongo_uri = os.getenv('MONGO_CARREFOUR_URI')
     if not mongo_uri:
@@ -54,10 +54,12 @@ def connect_mongodb():
         return None
 
 def save_categories_to_db(db, categories):
-    """Save categories to MongoDB with removal tracking"""
+    """Save categories to MongoDB with removal tracking and subcategory linking"""
     if db is None:
         print("No database connection available")
         return 0, 0, 0
+
+    print(f"Processing {len(categories)} categories for saving...")
 
     collection = db['categories']
     added_count = 0
@@ -77,6 +79,19 @@ def save_categories_to_db(db, categories):
     # Process current categories from website
     for category in categories:
         try:
+            # Get subcategories for this category (case-insensitive match)
+            category_slug_lower = category['slug'].lower()
+            subcategories = list(db.subcategories.find(
+                {'category': {'$regex': f'^{category_slug_lower}$', '$options': 'i'}, 'active': True},
+                {'_id': 1, 'name': 1, 'slug': 1}
+            ))
+
+            # Add subcategories to category
+            category['subcategories'] = subcategories
+
+            # Update subcategory count in metadata
+            category['metadata']['subcategoryCount'] = len(subcategories)
+
             # Use slug as unique identifier for upsert
             result = collection.update_one(
                 {'slug': category['slug']},
@@ -186,14 +201,18 @@ def main():
             categoryLinks.forEach(link => {
                 const name = link.textContent.trim();
                 const url = link.href;
-                const slug = generateSlug(name);
+                
+                // Extract slug from URL (last part after the last '/')
+                const urlParts = url.split('/');
+                const slugFromUrl = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2] || '';
 
-                if (name && url && slug) {
+                if (name && url && slugFromUrl) {
                     categories.push({
                         // _id will be ObjectId generated automatically by MongoDB
                         name: name, // Category name (required, unique)
                         displayName: name, // Display name (same as name for now)
-                        slug: slug, // URL-friendly slug (required, unique)
+                        slug: slugFromUrl, // URL-friendly slug extracted from URL (required, unique)
+                        url: url, // Add the URL field
                         subcategories: [], // Empty array by default
                         active: true, // Default to active
                         featured: true, // Default to featured for visible categories

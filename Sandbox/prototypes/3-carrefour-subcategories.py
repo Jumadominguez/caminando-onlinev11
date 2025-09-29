@@ -139,10 +139,6 @@ class CarrefourSubcategoriesScraper:
 
             for index, label in enumerate(subcategory_labels):
                 try:
-                    # Debug: check element details
-                    if index < 2:  # Only log first 2 for debugging
-                        logger.info(f"Label {index} details: tag={label.tag_name}, class={label.get_attribute('class')}")
-
                     # Try different methods to get text
                     full_text = ""
                     try:
@@ -158,8 +154,6 @@ class CarrefourSubcategoriesScraper:
                         full_text = label.text or ""
 
                     full_text = full_text.strip()
-                    if index < 5:  # Only log first 5 for debugging
-                        logger.info(f"Processing label {index}: '{full_text}'")
 
                     if not full_text:
                         continue
