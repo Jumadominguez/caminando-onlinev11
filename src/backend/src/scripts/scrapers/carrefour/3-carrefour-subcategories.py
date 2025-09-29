@@ -26,8 +26,11 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 try:
-    load_dotenv(dotenv_path=r"d:\dev\caminando-onlinev11\src\backend\.env")
-    print("Loaded environment variables from .env file")
+    # Load .env from src/backend/ directory (encrypted environment)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..', '..'))
+    backend_env = os.path.join(project_root, 'src', 'backend', '.env')
+    load_dotenv(dotenv_path=backend_env)
+    print("Loaded environment variables from src/backend/.env file")
 except ImportError:
     print("python-dotenv not installed. Using system environment variables only.")
 
@@ -63,9 +66,6 @@ class ColoredFormatter(logging.Formatter):
 # Configure logging with colors
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-# Ensure logs directory exists
-os.makedirs('logs', exist_ok=True)
 
 # File handler (overwrite mode to avoid old logs)
 file_handler = logging.FileHandler('logs/3-carrefour-subcategories.log', mode='w')
@@ -124,7 +124,7 @@ def connect_mongodb():
         if not mongo_uri:
             raise ValueError("MONGO_CARREFOUR_URI environment variable not set")
 
-        client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+        client = pymongo.MongoClient(mongo_uri)
         db = client.carrefour
 
         # Test the connection
@@ -266,7 +266,7 @@ class CarrefourSubcategoriesScraper:
                         'slug': slug,
                         'url': f'https://www.carrefour.com.ar/{category_slug}?initialMap=c&initialQuery={category_slug}&map=category-1,category-3&query=/{category_slug}/{slug}&searchState',
                         'displayName': name,
-                        'category': category_slug,
+                        'category': category_name,
                         'priority': index,
                         'active': True,
                         'featured': True,  # Always true when extracted/found
@@ -313,10 +313,6 @@ class CarrefourSubcategoriesScraper:
 
         logger.info(f"Processing subcategories for category: {category_slug}")
 
-        # Get category name from database first
-        category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
-        category_name = category_doc.get("name", category_slug) if category_doc else category_slug
-
         # Step 3.2a: Get existing subcategories before processing
         if self.db is None:
             # Test mode - simulate existing subcategories
@@ -325,7 +321,7 @@ class CarrefourSubcategoriesScraper:
         else:
             try:
                 existing_subcategories = list(self.db.subcategories.find(
-                    {"category": category_name, "active": True},
+                    {"category": category_slug, "active": True},
                     {"slug": 1, "_id": 0}
                 ))
                 existing_slugs = set(s['slug'] for s in existing_subcategories)
@@ -334,7 +330,9 @@ class CarrefourSubcategoriesScraper:
                 existing_slugs = set()
 
         # Step 3.1 & 3.2b: Extract subcategories and process each one
-        # category_name already obtained above
+        # Get category name from database
+        category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+        category_name = category_doc.get("name", category_slug) if category_doc else category_slug
 
         extracted_subcategories = self.extract_subcategories(category_slug, category_name)
 
@@ -399,7 +397,7 @@ class CarrefourSubcategoriesScraper:
             if removed_slugs:
                 try:
                     result = self.db.subcategories.update_many(
-                        {"slug": {"$in": removed_slugs}, "category": category_name},
+                        {"slug": {"$in": removed_slugs}, "category": category_slug},
                         {"$set": {
                             "featured": False,
                             "metadata.lastUpdated": datetime.now(timezone.utc)
@@ -426,12 +424,11 @@ class CarrefourSubcategoriesScraper:
             print_error("No categories found in database")
             return
 
-        # Process first 3 categories for testing
-        categories_to_process = categories[:3]
-        print_info(f"Processing first {len(categories_to_process)} categories sequentially (limited for testing)")
+        # Process all categories (remove testing limit)
+        print_info(f"Processing {len(categories)} categories sequentially")
 
         completed_count = 0
-        for category in categories_to_process:
+        for category in categories:
             try:
                 category_slug = category.get('slug')
                 if not category_slug:
@@ -498,38 +495,12 @@ class CarrefourSubcategoriesScraper:
                 time.sleep(2)
 
             except Exception as e:
-                print_error(f"Failed to process category {category.get('slug', 'unknown')}: {e}")
+                # Handle specific Selenium errors with cleaner messages
+                if "NoSuchElementError" in str(type(e)) or "NoSuchElementError" in str(e):
+                    print_warning(f"Category {category.get('slug', 'unknown')} has no subcategories or filter not found - skipping")
+                else:
+                    print_error(f"Failed to process category {category.get('slug', 'unknown')}: {str(e)[:100]}...")
                 continue
-
-        # After processing all categories, update each category with its subcategories
-        print_info("Updating categories with their subcategories...")
-        for category in categories_to_process:
-            try:
-                category_slug = category.get('slug')
-                if not category_slug:
-                    continue
-
-                category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
-                category_name = category_doc.get("name", category_slug) if category_doc else category_slug
-
-                subcategories = list(self.db.subcategories.find(
-                    {"category": category_slug, "active": True},
-                    {"_id": 1, "name": 1, "slug": 1}
-                ))
-
-                self.db.categories.update_one(
-                    {"slug": category_slug},
-                    {"$set": {
-                        "subcategories": subcategories,
-                        "metadata.subcategoryCount": len(subcategories),
-                        "metadata.lastUpdated": datetime.now(timezone.utc)
-                    }}
-                )
-
-                logger.info(f"Updated category {category_slug} with {len(subcategories)} subcategories")
-
-            except Exception as e:
-                logger.error(f"Error updating category {category.get('slug', 'unknown')} with subcategories: {e}")
 
         print_success("Completed subcategories scraping for all categories")
         print_separator()

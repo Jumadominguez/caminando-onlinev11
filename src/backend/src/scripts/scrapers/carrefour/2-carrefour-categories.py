@@ -36,7 +36,10 @@ def generate_slug(name):
 
 def connect_mongodb():
     """Connect to MongoDB Atlas"""
-    load_dotenv(dotenv_path=r"d:\dev\caminando-onlinev11\src\backend\.env")
+    # Load .env from src/backend/ directory (encrypted environment)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..', '..'))
+    backend_env = os.path.join(project_root, 'src', 'backend', '.env')
+    load_dotenv(dotenv_path=backend_env)
 
     mongo_uri = os.getenv('MONGO_CARREFOUR_URI')
     if not mongo_uri:
