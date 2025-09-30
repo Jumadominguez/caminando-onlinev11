@@ -7,6 +7,8 @@ Extract categories from menu and save to MongoDB
 import os
 import json
 import time
+import logging
+import re
 from datetime import datetime, UTC
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
@@ -15,6 +17,83 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pymongo import MongoClient
 from dotenv import load_dotenv
+
+# ANSI color codes for better terminal visualization
+class Colors:
+    RESET = '\033[0m'
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    BOLD = '\033[1m'
+
+# Custom formatter for colored logging
+class ColoredFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelno == logging.ERROR:
+            record.levelname = f"{Colors.RED}{record.levelname}{Colors.RESET}"
+            record.msg = f"{Colors.RED}{record.msg}{Colors.RESET}"
+        elif record.levelno == logging.WARNING:
+            record.levelname = f"{Colors.YELLOW}{record.levelname}{Colors.RESET}"
+            record.msg = f"{Colors.YELLOW}{record.msg}{Colors.RESET}"
+        elif record.levelno == logging.INFO:
+            record.levelname = f"{Colors.BLUE}{record.levelname}{Colors.RESET}"
+            record.msg = f"{Colors.CYAN}{record.msg}{Colors.RESET}"
+        elif record.levelno == logging.DEBUG:
+            record.levelname = f"{Colors.MAGENTA}{record.levelname}{Colors.RESET}"
+            record.msg = f"{Colors.MAGENTA}{record.msg}{Colors.RESET}"
+        return super().format(record)
+
+# Configure logging with colors
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# File handler (overwrite mode to avoid old logs)
+file_handler = logging.FileHandler('logs/2-dia-categories.log', mode='w')
+file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(file_formatter)
+
+# Console handler with colors
+console_handler = logging.StreamHandler()
+console_formatter = ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(console_formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# Utility functions for better visualization
+def print_separator(char='=', length=60):
+    """Print a visual separator line"""
+    print(f"{Colors.BLUE}{char * length}{Colors.RESET}")
+
+def print_header(text, emoji=''):
+    """Print a formatted header"""
+    print_separator()
+    print(f"{Colors.BOLD}{Colors.GREEN}{emoji} {text.upper()} {emoji}{Colors.RESET}")
+    print_separator()
+
+def print_success(text):
+    """Print success message"""
+    print(f"{Colors.GREEN}✅ {text}{Colors.RESET}")
+
+def print_warning(text):
+    """Print warning message"""
+    print(f"{Colors.YELLOW}⚠️  {text}{Colors.RESET}")
+
+def print_error(text):
+    """Print error message"""
+    print(f"{Colors.RED}❌ {text}{Colors.RESET}")
+
+def print_info(text):
+    """Print info message"""
+    print(f"{Colors.BLUE}ℹ️  {text}{Colors.RESET}")
+
+def print_action(text):
+    """Print action message"""
+    print(f"{Colors.CYAN}🔄 {text}{Colors.RESET}")
 
 def generate_slug(url):
     """Extract slug from URL"""
@@ -33,23 +112,23 @@ def connect_mongodb():
 
     mongo_uri = os.getenv('MONGO_DIA_URI')
     if not mongo_uri:
-        print("Error: MONGO_DIA_URI not found in environment variables")
+        print_error("MONGO_DIA_URI not found in environment variables")
         return None
 
     try:
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
         db = client.dia
-        print("Connected to MongoDB Atlas successfully")
+        print_success("Connected to MongoDB Atlas successfully")
         return db
     except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
+        print_error(f"Failed to connect to MongoDB: {e}")
         return None
 
 def save_categories_to_db(db, categories):
     """Save categories to MongoDB with removal tracking"""
     if db is None:
-        print("No database connection available")
+        print_error("No database connection available")
         return 0, 0, 0
 
     collection = db['categories']
@@ -81,7 +160,7 @@ def save_categories_to_db(db, categories):
             elif result.modified_count > 0:
                 updated_count += 1
         except Exception as e:
-            print(f"Error saving category {category.get('name', 'Unknown')}: {e}")
+            print_error(f"Error saving category {category.get('name', 'Unknown')}: {e}")
 
     # Count removed categories (those that were featured but not in current website)
     removed_slugs = existing_featured_slugs - current_slugs
@@ -90,6 +169,8 @@ def save_categories_to_db(db, categories):
     return added_count, updated_count, removed_count
 
 def main():
+    print_header("Dia Categories Scraper", "🛒")
+    print_info("Starting Dia categories extraction from menu")
     # Configure Edge WebDriver
     options = Options()
     # Headless mode for production/scaling
@@ -117,14 +198,14 @@ def main():
 
     try:
         # Navigate to Dia homepage
-        print("Navigating to Dia homepage...")
+        print_action("Navigating to Dia homepage...")
         driver.get("https://diaonline.supermercadosdia.com.ar")
 
         # Wait for page to load
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "title")))
 
-        print("Page loaded. Waiting...")
+        print_info("Page loaded. Waiting...")
         time.sleep(1)
 
         # Remove modal that blocks clicks (Dia specific)
@@ -152,7 +233,7 @@ def main():
         # Use JavaScript click instead of Selenium click
         driver.execute_script("arguments[0].click();", categories_button)
 
-        print("Menu opened! Extracting categories...")
+        print_action("Menu opened! Extracting categories...")
 
         # Wait for menu to fully load
         time.sleep(2)
@@ -232,24 +313,26 @@ def main():
             category['createdAt'] = current_time
             category['updatedAt'] = current_time
 
-        print(f"Extracted {len(filtered_categories)} categories from menu")
+        print_info(f"Extracted {len(filtered_categories)} categories from menu")
 
         # Save to database
         if db is not None and filtered_categories:
             added_count, updated_count, removed_count = save_categories_to_db(db, filtered_categories)
-            print(f"Categories processed: {added_count} added, {updated_count} updated, {removed_count} removed")
+            print_success(f"Categories processed: {added_count} added, {updated_count} updated, {removed_count} removed")
         else:
-            print("No database connection or no categories to save")
+            print_warning("No database connection or no categories to save")
 
-        print("Test completed successfully!")
+        print_success("Test completed successfully!")
 
     except Exception as e:
-        print(f"Error: {e}")
+        print_error(f"Error: {e}")
 
     finally:
         driver.quit()
         if db is not None:
-            print("Database connection closed")
+            print_info("Database connection closed")
+
+    print_separator()
 
 if __name__ == "__main__":
     main()

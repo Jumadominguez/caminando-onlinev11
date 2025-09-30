@@ -7,6 +7,8 @@ Extract categories from menu and save to MongoDB
 import os
 import json
 import time
+import logging
+import re
 from datetime import datetime, UTC
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
@@ -16,6 +18,65 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from pymongo import MongoClient
 from dotenv import load_dotenv
+
+try:
+    from colorama import init, Fore, Back, Style
+    COLORAMA_AVAILABLE = True
+    init(autoreset=True)
+except ImportError:
+    COLORAMA_AVAILABLE = False
+
+# Configure logging (simple, without colors)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Colored print functions
+def print_success(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.GREEN}✓ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[SUCCESS] {message}")
+
+def print_warning(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.YELLOW}⚠ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[WARNING] {message}")
+
+def print_error(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.RED}✗ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[ERROR] {message}")
+
+def print_info(message):
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.CYAN}ℹ {message}{Style.RESET_ALL}")
+    else:
+        print(f"[INFO] {message}")
+
+# Utility functions for better visualization
+def print_separator(char='=', length=60):
+    """Print a visual separator line"""
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.BLUE}{char * length}{Style.RESET_ALL}")
+    else:
+        print(f"{char * length}")
+
+def print_header(text, emoji=''):
+    """Print a formatted header"""
+    print_separator()
+    if COLORAMA_AVAILABLE:
+        print(f"{Fore.GREEN}{emoji} {text.upper()} {emoji}{Style.RESET_ALL}")
+    else:
+        print(f"{emoji} {text.upper()} {emoji}")
+    print_separator()
 
 def generate_slug(name):
     """Generate slug from category name with proper Spanish character handling"""
@@ -29,7 +90,6 @@ def generate_slug(name):
     # Replace remaining spaces with hyphens
     slug = slug.replace(' ', '-')
     # Remove any remaining non-alphanumeric characters except hyphens
-    import re
     slug = re.sub(r'[^a-z0-9-]', '', slug)
     # Remove multiple consecutive hyphens and leading/trailing hyphens
     slug = re.sub(r'-+', '-', slug).strip('-')
@@ -41,23 +101,23 @@ def connect_mongodb():
 
     mongo_uri = os.getenv('MONGO_VEA_URI')
     if not mongo_uri:
-        print("Error: MONGO_VEA_URI not found in environment variables")
+        print_error("MONGO_VEA_URI not found in environment variables")
         return None
 
     try:
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
         db = client.vea
-        print("Connected to MongoDB Atlas successfully")
+        print_success("Connected to MongoDB Atlas successfully")
         return db
     except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
+        print_error(f"Failed to connect to MongoDB: {e}")
         return None
 
 def save_categories_to_db(db, categories):
     """Save categories to MongoDB with removal tracking"""
     if db is None:
-        print("No database connection available")
+        print_error("No database connection available")
         return 0, 0, 0
 
     collection = db['categories']
@@ -89,7 +149,7 @@ def save_categories_to_db(db, categories):
             elif result.modified_count > 0:
                 updated_count += 1
         except Exception as e:
-            print(f"Error saving category {category.get('name', 'Unknown')}: {e}")
+            print_error(f"Error saving category {category.get('name', 'Unknown')}: {e}")
 
     # Count removed categories (those that were featured but not in current website)
     removed_slugs = existing_featured_slugs - current_slugs
@@ -98,6 +158,8 @@ def save_categories_to_db(db, categories):
     return added_count, updated_count, removed_count
 
 def main():
+    print_header("Vea Categories Scraper", "🛒")
+    print_info("Starting Vea categories extraction from menu")
     # Configure Edge WebDriver
     options = Options()
     # Headless mode for production/scaling
@@ -125,14 +187,14 @@ def main():
 
     try:
         # Navigate to Vea homepage
-        print("Navigating to Vea homepage...")
+        print_info("Navigating to Vea homepage...")
         driver.get("https://www.vea.com.ar")
 
         # Wait for page to load
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "title")))
 
-        print("Page loaded. Waiting...")
+        print_info("Page loaded. Waiting...")
         time.sleep(1)
 
         # Remove modal that blocks clicks (Vea specific)
@@ -161,7 +223,7 @@ def main():
         actions = ActionChains(driver)
         actions.move_to_element(categories_trigger).perform()
 
-        print("Menu hover activated! Waiting for menu to appear...")
+        print_info("Menu hover activated! Waiting for menu to appear...")
 
         # Wait for menu to fully load after hover
         time.sleep(3)
@@ -251,22 +313,23 @@ def main():
             category['createdAt'] = current_time
             category['updatedAt'] = current_time
 
-        print(f"Extracted {len(filtered_categories)} categories from menu")
+        print_success(f"Extracted {len(filtered_categories)} categories from menu")
 
         # Save to database
         if db is not None and filtered_categories:
             added_count, updated_count, removed_count = save_categories_to_db(db, filtered_categories)
-            print(f"Categories processed: {added_count} added, {updated_count} updated, {removed_count} removed")
+            print_success(f"Categories processed: {added_count} added, {updated_count} updated, {removed_count} removed")
         else:
-            print("No database connection or no categories to save")
+            print_warning("No database connection or no categories to save")
 
-        print("Test completed successfully!")
+        print_success("Test completed successfully!")
 
     except Exception as e:
-        print(f"Error: {e}")
+        print_error(f"Error: {e}")
 
     finally:
         driver.quit()
+        print_separator()
         if db is not None:
             print("Database connection closed")
 
