@@ -324,7 +324,8 @@ class DiscoSubcategoriesScraper:
                         'metadata': {
                             'productCount': product_count,
                             'productTypeCount': 0,
-                            'lastUpdated': datetime.now(timezone.utc)
+                            'lastUpdated': datetime.now(timezone.utc),
+                            'prevExtracted': True  # Mark as successfully extracted
                         },
                         'createdAt': datetime.now(timezone.utc),
                         'updatedAt': datetime.now(timezone.utc)
@@ -374,9 +375,9 @@ class DiscoSubcategoriesScraper:
         try:
             logger.debug(f"Thread {thread_id}: Creating Firefox options...")
             options = Options()
-            # TEMPORARILY DISABLE HEADLESS FOR DEBUGGING
-            # options.add_argument("--headless")
-            logger.debug(f"Thread {thread_id}: Browser initialized (headless: False - DEBUG MODE)")
+            if self.headless:
+                options.add_argument("--headless")
+            logger.debug(f"Thread {thread_id}: Browser initialized (headless: {self.headless})")
 
             # Anti-detection measures
             logger.debug(f"Thread {thread_id}: Setting anti-detection measures...")
@@ -531,31 +532,16 @@ class DiscoSubcategoriesScraper:
         # Step 3.1 & 3.2b: Extract subcategories and process each one
         extracted_subcategories = self._extract_subcategories_threaded(driver, category_slug)
 
-        # If no subcategories found, create a default one with same name as category
-        if not extracted_subcategories:
-            # Get category name from database
-            category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
-            category_name = category_doc.get("name", category_slug) if category_doc else category_slug
-
-            default_subcategory = {
-                'name': category_name,
-                'slug': category_slug,
-                'url': f'https://www.disco.com.ar/{category_slug}?initialMap=c&initialQuery={category_slug}&map=category-1&query=/{category_slug}&searchState',
-                'displayName': category_name,
-                'category': category_slug,
-                'priority': 0,
-                'active': True,
-                'featured': True,
-                'metadata': {
-                    'productCount': 0,
-                    'productTypeCount': 0,
-                    'lastUpdated': datetime.now(timezone.utc)
-                },
-                'createdAt': datetime.now(timezone.utc),
-                'updatedAt': datetime.now(timezone.utc)
-            }
-            extracted_subcategories = [default_subcategory]
-            logger.info(f"Created default subcategory for category: {category_name}")
+        # If no subcategories found but there were previously extracted ones, keep them active
+        # Don't create default subcategories with same name as category
+        if not extracted_subcategories and existing_slugs:
+            logger.info(f"No subcategories extracted for {category_slug}, but keeping {len(existing_slugs)} previously extracted ones active")
+            # Don't mark existing subcategories as removed if extraction failed
+            extracted_subcategories = []  # Keep existing ones active by not processing removals
+        elif not extracted_subcategories:
+            # Only if no subcategories were ever extracted, leave empty
+            logger.info(f"No subcategories found for category: {category_slug} (first time or confirmed empty)")
+            extracted_subcategories = []
 
         added_count = 0
         updated_count = 0
@@ -585,29 +571,65 @@ class DiscoSubcategoriesScraper:
                 logger.error(f"Error inserting/updating subcategory {subcategory['slug']}: {e}")
 
         # Step 3.2c: Handle removed subcategories
+        # Only mark as removed if we successfully extracted from the PRIMARY container (category-3)
+        # If we used fallback (category-2) or extraction failed, keep existing subcategories active
         extracted_slugs = set(s['slug'] for s in extracted_subcategories)
-        removed_slugs = list(existing_slugs - extracted_slugs)
-
         removed_count = 0
-        if removed_slugs:
+
+        # Check if we used fallback container (category-2) or had extraction issues
+        used_fallback = False
+        if extracted_subcategories:
+            # Check if any extracted subcategory has metadata indicating fallback was used
+            # or if we know category-3 wasn't available
             try:
-                # Get category name for backward compatibility
-                category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                category_doc = self.db.categories.find_one({"slug": category_slug})
                 category_name = category_doc.get("name", category_slug) if category_doc else category_slug
 
-                result = self.db.subcategories.update_many(
+                # If there were previously extracted subcategories but we extracted from fallback,
+                # don't mark anything as removed
+                existing_prev_extracted = list(self.db.subcategories.find(
                     {"$or": [
-                        {"slug": {"$in": removed_slugs}, "category": category_slug},
-                        {"slug": {"$in": removed_slugs}, "category": category_name}
+                        {"category": category_slug, "metadata.prevExtracted": True},
+                        {"category": category_name, "metadata.prevExtracted": True}
                     ]},
-                    {"$set": {
-                        "featured": False,
-                        "metadata.lastUpdated": datetime.now(timezone.utc)
-                    }}
-                )
-                removed_count = result.modified_count
+                    {"slug": 1, "_id": 0}
+                ))
+
+                if existing_prev_extracted and len(extracted_subcategories) < len(existing_prev_extracted):
+                    # We extracted fewer subcategories than previously existed, likely used fallback
+                    used_fallback = True
+                    logger.info(f"Used fallback extraction for {category_slug}, keeping existing subcategories active")
             except Exception as e:
-                logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
+                logger.error(f"Error checking fallback status: {e}")
+
+        if extracted_subcategories and not used_fallback:  # Only if we actually extracted from primary container
+            removed_slugs = list(existing_slugs - extracted_slugs)
+            if removed_slugs:
+                try:
+                    # Get category name for backward compatibility
+                    category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                    category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+                    result = self.db.subcategories.update_many(
+                        {"$or": [
+                            {"slug": {"$in": removed_slugs}, "category": category_slug},
+                            {"slug": {"$in": removed_slugs}, "category": category_name}
+                        ]},
+                        {"$set": {
+                            "featured": False,
+                            "metadata.lastUpdated": datetime.now(timezone.utc)
+                        }}
+                    )
+                    removed_count = result.modified_count
+                    logger.info(f"Marked {removed_count} subcategories as removed for {category_slug}")
+                except Exception as e:
+                    logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
+        elif used_fallback:
+            logger.info(f"Keeping all existing subcategories active for {category_slug} (fallback extraction used)")
+            removed_count = 0  # Don't remove anything when using fallback
+        elif not extracted_subcategories and existing_slugs:
+            logger.info(f"Keeping {len(existing_slugs)} existing subcategories active for {category_slug} (extraction failed or empty)")
+            removed_count = 0  # Don't remove anything if extraction failed
 
         # Consolidated logging
         logger.info(f"Category {category_slug}: {added_count} added, {updated_count} updated, {removed_count} removed subcategories")
@@ -647,10 +669,95 @@ class DiscoSubcategoriesScraper:
                 logger.debug(f"No accordion headers found: {e}")
 
             # Use the correct Disco VTEX selector based on the HTML structure
-            container = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR,
-                    ".vtex-search-result-3-x-filter__container--category-3"))
-            )
+            # First try category-3 (subcategories), then check if category was previously extracted
+            container = None
+            use_fallback = False
+
+            # Try to find category-3 container first
+            try:
+                container = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR,
+                        ".vtex-search-result-3-x-filter__container--category-3"))
+                )
+                logger.debug(f"Found category-3 container for subcategories")
+            except TimeoutException:
+                logger.debug(f"Category-3 container not found, checking if category was previously extracted...")
+
+                # Check if this category has subcategories that were previously extracted
+                try:
+                    # Get category name for backward compatibility
+                    category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                    category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+                    # Check if there are any subcategories with prevExtracted = true
+                    existing_extracted = self.db.subcategories.find_one(
+                        {"$or": [
+                            {"category": category_slug, "metadata.prevExtracted": True},
+                            {"category": category_name, "metadata.prevExtracted": True}
+                        ]},
+                        {"_id": 1}
+                    )
+
+                    if existing_extracted:
+                        logger.warning(f"Category {category_slug} had subcategories previously extracted but container not found - attempting recovery")
+                        print_warning(f"Attempting recovery for {category_slug} - searching for alternative containers")
+                        # Don't return empty, continue to broader search below
+                        use_fallback = True
+                    else:
+                        logger.debug(f"Category {category_slug} has no previously extracted subcategories, trying category-2 fallback")
+                        use_fallback = True
+                except Exception as e:
+                    logger.error(f"Error checking previous extraction status: {e}")
+                    # Continue with fallback attempt
+                    use_fallback = True
+
+            # If category-3 not found and we should use fallback, try category-2
+            if container is None and use_fallback:
+                try:
+                    container = WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR,
+                            ".vtex-search-result-3-x-filter__container--category-2"))
+                    )
+                    logger.debug(f"Using category-2 container as fallback for categories as subcategories")
+                except TimeoutException:
+                    logger.warning(f"Neither category-3 nor category-2 container found for {category_slug}")
+
+            # If still no container found but category had previously extracted subcategories,
+            # try broader search for any filter container that might contain subcategories
+            if container is None and existing_extracted:
+                logger.debug(f"Attempting broader search for subcategory containers in {category_slug}")
+                try:
+                    # Try to find any container that has subcategory-like content
+                    broader_selectors = [
+                        ".vtex-search-result-3-x-filter__container",  # Any filter container
+                        ".vtex-search-result-3-x-accordionFilterContainer",  # Accordion containers
+                        "[class*='filter__container']",  # Any element with filter container in class
+                        ".filter-container",  # Generic filter container
+                        "[data-testid*='filter']",  # Test IDs containing filter
+                    ]
+
+                    for selector in broader_selectors:
+                        try:
+                            potential_containers = driver.find_elements(By.CSS_SELECTOR, selector)
+                            for cont in potential_containers:
+                                # Check if this container has checkbox labels (subcategory indicators)
+                                labels = cont.find_elements(By.CSS_SELECTOR, "label.vtex-checkbox__label")
+                                if len(labels) > 1:  # More than 1 suggests it's a subcategory container
+                                    container = cont
+                                    logger.info(f"Found subcategory container using broader selector: {selector} with {len(labels)} labels")
+                                    break
+                            if container:
+                                break
+                        except Exception:
+                            continue
+
+                except Exception as e:
+                    logger.debug(f"Broad search failed: {e}")
+
+            if container is None:
+                logger.warning(f"No container found for {category_slug}")
+                print_warning(f"No container found for {category_slug}")
+                return extracted_subcategories
 
             # Try to click "Mostrar más" button if it exists
             try:
@@ -663,12 +770,35 @@ class DiscoSubcategoriesScraper:
 
             # Now find all subcategory labels within the container
             logger.debug(f"Looking for subcategory labels within the container")
-            subcategory_labels = container.find_elements(
-                By.CSS_SELECTOR,
-                "label.vtex-checkbox__label"
-            )
+            subcategory_labels = []
 
-            logger.debug(f"Found {len(subcategory_labels)} subcategory labels in the container")
+            # Try multiple selectors for subcategory labels
+            label_selectors = [
+                "label.vtex-checkbox__label",
+                ".vtex-checkbox__label",
+                "label[for*='category']",
+                ".filter-option",
+                "[class*='checkbox'] label",
+                "[class*='option']",
+            ]
+
+            for selector in label_selectors:
+                try:
+                    labels = container.find_elements(By.CSS_SELECTOR, selector)
+                    if len(labels) > 1:  # Found multiple labels, likely the right selector
+                        subcategory_labels = labels
+                        logger.debug(f"Found {len(labels)} labels using selector: {selector}")
+                        break
+                except Exception:
+                    continue
+
+            # If no labels found with specific selectors, try to find any labels in the container
+            if not subcategory_labels:
+                try:
+                    subcategory_labels = container.find_elements(By.TAG_NAME, "label")
+                    logger.debug(f"Found {len(subcategory_labels)} generic labels in container")
+                except Exception:
+                    logger.debug("No labels found even with generic search")
 
             logger.info(f"Found {len(subcategory_labels)} subcategory labels in the container")
 
@@ -717,7 +847,8 @@ class DiscoSubcategoriesScraper:
                         'metadata': {
                             'productCount': product_count,
                             'productTypeCount': 0,
-                            'lastUpdated': datetime.now(timezone.utc)
+                            'lastUpdated': datetime.now(timezone.utc),
+                            'prevExtracted': True  # Mark as successfully extracted
                         },
                         'createdAt': datetime.now(timezone.utc),
                         'updatedAt': datetime.now(timezone.utc)
@@ -793,9 +924,9 @@ class DiscoSubcategoriesScraper:
         try:
             logger.info(f"Thread {index}: Creating Firefox options...")
             options = Options()
-            # TEMPORARILY DISABLE HEADLESS FOR DEBUGGING
-            # options.add_argument("--headless")
-            logger.info(f"Thread {index}: Browser initialized (headless: False - DEBUG MODE)")
+            if self.headless:
+                options.add_argument("--headless")
+            logger.info(f"Thread {index}: Browser initialized (headless: {self.headless})")
 
             # Anti-detection measures
             logger.info(f"Thread {index}: Setting anti-detection measures...")

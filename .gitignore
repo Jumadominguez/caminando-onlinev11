@@ -59,3 +59,8 @@ tests/
 # Temporary files
 *.tmp
 *.temp
+
+# Scrapers HTML and vault folders
+src/backend/src/scripts/scrapers/*/HTML_crawler/HTML/
+src/backend/src/scripts/scrapers/*/HTML/vault/
+src/backend/src/scripts/scrapers/*/HTML_crawler/*.html

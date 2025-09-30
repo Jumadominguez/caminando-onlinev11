@@ -1,7 +1,7 @@
 # Desglose de Archivo: vea_outerhtml_crawler.py
 
 ## Propósito
-Este archivo implementa un crawler para extraer outerHTML completo de páginas clave del sitio web de Vea. Forma parte de la fase inicial de desarrollo de scrapers, permitiendo análisis offline de selectores CSS, estructura DOM y metadata para el desarrollo posterior de scrapers específicos. Basado en la implementación de Jumbo con vault system integrado.
+Este archivo implementa el crawler de outerHTML para el supermercado Vea, adaptado del crawler de Jumbo. Extrae snapshots completos del HTML de páginas clave del sitio vea.com.ar para análisis offline y desarrollo de scrapers.
 
 ## Relaciones
 - **Ubicación**: `src/backend/src/scripts/scrapers/vea/HTML/vea_outerhtml_crawler.py`
@@ -36,7 +36,7 @@ Este archivo implementa un crawler para extraer outerHTML completo de páginas c
 6. **descuentos_cencopay**: Descuentos Cencosud (https://www.vea.com.ar/descuentos-del-dia?type=cencopay)
 
 ## Fecha de Incorporación
-Septiembre 2025
+Septiembre 30, 2025
 
 ## Feature Asociada
 Feature 9: OuterHTML Scraper Vea

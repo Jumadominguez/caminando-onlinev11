@@ -26,7 +26,8 @@ const subcategorySchema = new mongoose.Schema({
   metadata: {
     productCount: { type: Number, default: 0 }, // Cantidad de productos
     productTypeCount: { type: Number, default: 0 }, // Cantidad de tipos de producto
-    lastUpdated: { type: Date } // Última actualización de productos
+    lastUpdated: { type: Date }, // Última actualización de productos
+    prevExtracted: { type: Boolean, default: false } // Si se extrajeron subcategorías anteriormente
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

@@ -461,29 +461,65 @@ class DiaSubcategoriesScraper:
                 logger.error(f"Error inserting/updating subcategory {subcategory['slug']}: {e}")
 
         # Step 3.2c: Handle removed subcategories
+        # Only mark as removed if we successfully extracted from the PRIMARY container (category-3)
+        # If we used fallback (category-2) or extraction failed, keep existing subcategories active
         extracted_slugs = set(s['slug'] for s in extracted_subcategories)
-        removed_slugs = list(existing_slugs - extracted_slugs)
-
         removed_count = 0
-        if removed_slugs:
+
+        # Check if we used fallback container (category-2) or had extraction issues
+        used_fallback = False
+        if extracted_subcategories:
+            # Check if any extracted subcategory has metadata indicating fallback was used
+            # or if we know category-3 wasn't available
             try:
-                # Get category name for backward compatibility
-                category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                category_doc = self.db.categories.find_one({"slug": category_slug})
                 category_name = category_doc.get("name", category_slug) if category_doc else category_slug
 
-                result = self.db.subcategories.update_many(
+                # If there were previously extracted subcategories but we extracted from fallback,
+                # don't mark anything as removed
+                existing_prev_extracted = list(self.db.subcategories.find(
                     {"$or": [
-                        {"slug": {"$in": removed_slugs}, "category": category_slug},
-                        {"slug": {"$in": removed_slugs}, "category": category_name}
+                        {"category": category_slug, "metadata.prevExtracted": True},
+                        {"category": category_name, "metadata.prevExtracted": True}
                     ]},
-                    {"$set": {
-                        "featured": False,
-                        "metadata.lastUpdated": datetime.now(timezone.utc)
-                    }}
-                )
-                removed_count = result.modified_count
+                    {"slug": 1, "_id": 0}
+                ))
+
+                if existing_prev_extracted and len(extracted_subcategories) < len(existing_prev_extracted):
+                    # We extracted fewer subcategories than previously existed, likely used fallback
+                    used_fallback = True
+                    logger.info(f"Used fallback extraction for {category_slug}, keeping existing subcategories active")
             except Exception as e:
-                logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
+                logger.error(f"Error checking fallback status: {e}")
+
+        if extracted_subcategories and not used_fallback:  # Only if we actually extracted from primary container
+            removed_slugs = list(existing_slugs - extracted_slugs)
+            if removed_slugs:
+                try:
+                    # Get category name for backward compatibility
+                    category_doc = self.db.categories.find_one({"slug": category_slug}, {"name": 1})
+                    category_name = category_doc.get("name", category_slug) if category_doc else category_slug
+
+                    result = self.db.subcategories.update_many(
+                        {"$or": [
+                            {"slug": {"$in": removed_slugs}, "category": category_slug},
+                            {"slug": {"$in": removed_slugs}, "category": category_name}
+                        ]},
+                        {"$set": {
+                            "featured": False,
+                            "metadata.lastUpdated": datetime.now(timezone.utc)
+                        }}
+                    )
+                    removed_count = result.modified_count
+                    logger.info(f"Marked {removed_count} subcategories as removed for {category_slug}")
+                except Exception as e:
+                    logger.error(f"Error marking removed subcategories for {category_slug}: {e}")
+        elif used_fallback:
+            logger.info(f"Keeping all existing subcategories active for {category_slug} (fallback extraction used)")
+            removed_count = 0  # Don't remove anything when using fallback
+        elif not extracted_subcategories and existing_slugs:
+            logger.info(f"Keeping {len(existing_slugs)} existing subcategories active for {category_slug} (extraction failed or empty)")
+            removed_count = 0  # Don't remove anything if extraction failed
 
         # Consolidated logging
         logger.info(f"Category {category_slug}: {added_count} added, {updated_count} updated, {removed_count} removed subcategories")
