@@ -16,27 +16,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
-def generate_slug(name):
-    """Generate slug from category name with proper Spanish character handling"""
-    # Convert to lowercase
-    slug = name.lower()
-    # Replace Spanish characters
-    slug = slug.replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
-    slug = slug.replace('ñ', 'n').replace('ü', 'u')
-    # Replace " y " (word) with "-" but keep "y" in other contexts
-    slug = slug.replace(' y ', '-').replace(' & ', '-').replace(' / ', '-')
-    # Replace remaining spaces with hyphens
-    slug = slug.replace(' ', '-')
-    # Remove any remaining non-alphanumeric characters except hyphens
-    import re
-    slug = re.sub(r'[^a-z0-9-]', '', slug)
-    # Remove multiple consecutive hyphens and leading/trailing hyphens
-    slug = re.sub(r'-+', '-', slug).strip('-')
+def generate_slug(url):
+    """Extract slug from URL"""
+    if not url:
+        return ""
+    # Split URL by '/' and get the last part
+    url_parts = url.split('/')
+    slug = url_parts[-1] or url_parts[-2] or ""
+    # Remove query parameters and fragments
+    slug = slug.split('?')[0].split('#')[0]
     return slug
 
 def connect_mongodb():
     """Connect to MongoDB Atlas"""
-    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend', '.env'))
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
 
     mongo_uri = os.getenv('MONGO_DIA_URI')
     if not mongo_uri:
@@ -198,13 +191,19 @@ def main():
             categoryLinks.forEach(link => {
                 const name = link.textContent.trim();
                 const url = link.href;
-                const slug = generateSlug(name);
+                
+                // Extract slug from URL
+                const urlParts = url.split('/');
+                const slugFromUrl = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2] || '';
+                // Clean slug (remove query parameters and fragments)
+                const slug = slugFromUrl.split('?')[0].split('#')[0];
 
                 if (name && url && slug) {
                     categories.push({
                         name: name,
                         displayName: name,
                         slug: slug,
+                        url: url,
                         subcategories: [],
                         active: true,
                         featured: true,

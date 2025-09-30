@@ -5,6 +5,7 @@ const categorySchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true }, // Nombre interno único
   displayName: { type: String }, // Nombre para mostrar (opcional, usar name si no existe)
   slug: { type: String, unique: true }, // Slug para URLs amigables
+  url: { type: String, required: true }, // URL completa de la categoría en el sitio web
   subcategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' }], // Subcategorías que pertenecen a esta categoría
   active: { type: Boolean, default: true },
   featured: { type: Boolean, default: false }, // Si es categoría destacada
@@ -21,6 +22,7 @@ const categorySchema = new mongoose.Schema({
 categorySchema.index({ active: 1 });
 categorySchema.index({ name: 1 });
 categorySchema.index({ slug: 1 });
+categorySchema.index({ url: 1 });
 categorySchema.index({ featured: 1 });
 categorySchema.index({ subcategories: 1 }); // Índice para consultas de subcategorías
 
@@ -43,16 +45,16 @@ categorySchema.methods.syncSubcategories = async function() {
   return this.save();
 };
 
-// Usar la conexión específica de carrefour
-const { carrefour } = global.databaseConnections || {};
+// Usar la conexión específica de jumbo
+const { jumbo } = global.databaseConnections || {};
 
 // Si no hay conexión global, crear una temporal (para desarrollo/testing)
 let Category;
-if (carrefour) {
-  Category = carrefour.model('Category', categorySchema);
+if (jumbo) {
+  Category = jumbo.model('Category', categorySchema);
 } else {
   // Fallback para desarrollo - usar conexión por defecto
-  console.warn('⚠️  Carrefour connection not available, using default connection for Category model');
+  console.warn('⚠️  Jumbo connection not available, using default connection for Category model');
   Category = mongoose.model('Category', categorySchema);
 }
 

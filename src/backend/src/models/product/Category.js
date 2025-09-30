@@ -5,6 +5,7 @@ const categorySchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true }, // Nombre interno único
   displayName: { type: String }, // Nombre para mostrar (opcional, usar name si no existe)
   slug: { type: String, unique: true }, // Slug para URLs amigables
+  url: { type: String, required: true }, // URL completa de la categoría en el sitio web
   color: { type: String }, // Color para UI
   image: { type: String }, // Imagen de la categoría
   subcategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' }], // Subcategorías que pertenecen a esta categoría
@@ -24,6 +25,7 @@ const categorySchema = new mongoose.Schema({
 categorySchema.index({ active: 1 });
 categorySchema.index({ name: 1 });
 categorySchema.index({ slug: 1 });
+categorySchema.index({ url: 1 });
 categorySchema.index({ featured: 1 });
 categorySchema.index({ subcategories: 1 }); // Índice para consultas de subcategorías
 

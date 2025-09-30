@@ -37,7 +37,7 @@ def generate_slug(name):
 
 def connect_mongodb():
     """Connect to MongoDB Atlas"""
-    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend', '.env'))
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
 
     mongo_uri = os.getenv('MONGO_JUMBO_URI')
     if not mongo_uri:
@@ -222,6 +222,7 @@ def main():
                         name: name,
                         displayName: name,
                         slug: slug,
+                        url: url,
                         subcategories: [],
                         active: true,
                         featured: true,
