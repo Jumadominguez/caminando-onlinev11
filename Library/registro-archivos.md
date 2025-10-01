@@ -92,8 +92,22 @@ Este documento mantiene un registro de todos los archivos incorporados al proyec
 - **Feature Asociada**: Documentación del algoritmo de clasificación automática
 - **Estado**: Activo
 
+#### 1-carrefour-supermarketinfo.py
+- **Ruta**: `src/backend/src/scripts/scrapers/carrefour/1-carrefour-supermarketinfo.py`
+- **Propósito**: Script completo para scraping de metadatos de Carrefour con conexión al modelo vía API
+- **Fecha de Incorporación**: 1 de octubre de 2025
+- **Feature Asociada**: Implementación del scraper de supermarket info para Carrefour
+- **Estado**: Activo
+
+#### 1-carrefour-supermarketinfo.py.md
+- **Ruta**: `Library/archivos/1-carrefour-supermarketinfo.py.md`
+- **Propósito**: Documentación del archivo Python vacío para supermarket info
+- **Fecha de Incorporación**: 1 de octubre de 2025
+- **Feature Asociada**: Documentación de estructura de modelos
+- **Estado**: Activo
+
 ## Estadísticas
-- **Total de archivos**: 7
-- **Scripts de scraping**: 3
-- **Documentación**: 4
-- **Última actualización**: 29 de septiembre de 2025
+- **Total de archivos**: 10
+- **Scripts de scraping**: 4
+- **Documentación**: 5
+- **Última actualización**: 1 de octubre de 2025

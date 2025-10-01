@@ -63,8 +63,7 @@ const apiLogSchema = new mongoose.Schema({
   // Metadata de performance
   timestamp: {
     type: Date,
-    default: Date.now,
-    index: true
+    default: Date.now
   },
   duration: Number, // Duración total en ms
   retryCount: {
@@ -93,12 +92,6 @@ const apiLogSchema = new mongoose.Schema({
 });
 
 // Índices para optimizar consultas
-apiLogSchema.index({ apiType: 1, timestamp: -1 });
-apiLogSchema.index({ supermarketId: 1, timestamp: -1 });
-apiLogSchema.index({ userId: 1, timestamp: -1 });
-apiLogSchema.index({ success: 1, timestamp: -1 });
-apiLogSchema.index({ statusCode: 1, timestamp: -1 });
-apiLogSchema.index({ method: 1, apiType: 1, timestamp: -1 });
 apiLogSchema.index({ correlationId: 1 });
 apiLogSchema.index({ tags: 1 });
 

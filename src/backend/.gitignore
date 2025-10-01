@@ -4,3 +4,4 @@
 !.env.project
 !.env.vault
 !.env.encrypted
+src/backend/ENV-ENCRYPTION-README.md

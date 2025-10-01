@@ -561,3 +561,82 @@ Este documento registra el proceso completo de desarrollo de features aprobadas 
 2. **Validación de Datos**: Verificar extracción correcta de subcategorías
 3. **Optimización**: Ajustar timeouts y estrategias de recuperación
 4. **Integración Completa**: Conectar con pipeline de scraping general
+
+### Feature 6: Archivo Python Vacío para Supermarket Info Carrefour
+**Fecha de Aprobación**: 1 de octubre de 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Análisis de requerimientos para archivo Python en directorio de modelos
+- Determinación de ubicación apropiada en estructura de modelos raw
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Verificación de permisos de escritura en directorio de modelos
+- Confirmación de estructura de directorios existente
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Creación de archivo vacío con nombre estandarizado
+- Verificación de integración con estructura existente
+
+#### Integración Final
+- Archivo movido a `src/backend/src/scripts/scrapers/carrefour/1-carrefour-supermarketinfo.py`
+- Creación de documentación en `Library/archivos/1-carrefour-supermarketinfo.py.md`
+- Actualización de `registro-archivos.md` con nueva entrada
+
+#### Testing
+- Verificación de creación exitosa del archivo
+- Confirmación de ubicación correcta en estructura de directorios
+
+#### Documentación
+- Documento de desglose del archivo vacío
+- Actualización de proceso.md con registro del feature
+- Registro en commit-counter.txt para versionado
+
+#### Estado del Feature
+**✅ COMPLETADO CON ÉXITO**
+- Archivo vacío creado inicialmente en directorio de modelos
+- Movido posteriormente al directorio de scrapers según requerimientos
+- Documentación completa preparada
+- Estructura de proyecto mantenida
+- Listo para implementación futura de funcionalidad de scraping
+
+### Feature 5: Scraper de Supermarket Info para Carrefour
+**Fecha de Aprobación**: 1 de octubre de 2025
+
+#### Fase de Experimentación (Sandbox/Experiments/)
+- Análisis de requerimientos para extracción de metadatos de Carrefour
+- Diseño de estructura de datos para información básica, plataforma, analytics y legal
+- Desarrollo inicial de métodos de extracción usando Selenium con Firefox
+
+#### Fase de Debugging (Sandbox/Debug/)
+- Configuración de WebDriver Firefox con opciones headless
+- Manejo de errores de elementos no encontrados
+- Logging detallado para debugging
+
+#### Fase de Prototipado (Sandbox/Prototypes/)
+- Implementación completa de clase CarrefourSupermarketInfoScraper
+- Métodos para extracción de info básica, plataforma, analytics y legal
+- Integración con MongoDB Atlas para almacenamiento en base 'carrefour'
+
+#### Integración Final
+- Movimiento del script a `src/backend/src/scripts/scrapers/carrefour/1-carrefour-supermarketinfo.py`
+- Creación de documentación en `Library/archivos/1-carrefour-supermarketinfo.py.md`
+- Actualización de `registro-archivos.md` con nueva entrada
+- Configuración de variables de entorno MONGO_CARREFOUR_URI
+
+#### Testing
+- Validación de sintaxis y dependencias
+- Prueba de conexión a base de datos
+- Verificación de estructura de datos extraídos
+
+#### Documentación
+- Documento de desglose completo del archivo
+- Actualización de proceso.md con registro del feature
+- Registro en commit-counter.txt para versionado
+
+#### Estado del Feature
+**✅ COMPLETADO CON ÉXITO**
+- Script creado siguiendo patrón de otros scrapers de supermarket info
+- Implementación completa con métodos modulares
+- Integración con MongoDB Atlas preparada
+- Documentación completa y registro actualizado
+- Listo para ejecución y testing funcional

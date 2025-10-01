@@ -64,3 +64,10 @@ tests/
 src/backend/src/scripts/scrapers/*/HTML_crawler/HTML/
 src/backend/src/scripts/scrapers/*/HTML/vault/
 src/backend/src/scripts/scrapers/*/HTML_crawler/*.html
+
+# encriptation files
+src/backend/ENV-ENCRYPTION-README.md
+
+#Library
+Library/archivos
+

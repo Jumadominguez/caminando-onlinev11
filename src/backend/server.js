@@ -32,8 +32,6 @@ function loadEncryptedEnv() {
 
 loadEncryptedEnv();
 
-const app = require('./src/app');
-
 // 🗄️ Arquitectura Multi-Database - 8 Bases de Datos Separadas
 // Implementación según documentación en Library/archivos/database-architecture.md
 
@@ -81,7 +79,7 @@ const processedConnection = mongoose.createConnection(
 
 // Base carrefour - Datos raw de Carrefour
 const carrefourConnection = mongoose.createConnection(
-  process.env.MONGO_CARREFOUR_URI || 'mongodb://localhost:27017/carrefour',
+  process.env.MONGO_CARREFOUR_URI || 'mongodb://localhost:27017/carrefour_raw',
   {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
@@ -91,7 +89,7 @@ const carrefourConnection = mongoose.createConnection(
 
 // Base dia - Datos raw de Dia
 const diaConnection = mongoose.createConnection(
-  process.env.MONGO_DIA_URI || 'mongodb://localhost:27017/dia',
+  process.env.MONGO_DIA_URI || 'mongodb://localhost:27017/dia_raw',
   {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
@@ -101,7 +99,7 @@ const diaConnection = mongoose.createConnection(
 
 // Base jumbo - Datos raw de Jumbo
 const jumboConnection = mongoose.createConnection(
-  process.env.MONGO_JUMBO_URI || 'mongodb://localhost:27017/jumbo',
+  process.env.MONGO_JUMBO_URI || 'mongodb://localhost:27017/jumbo_raw',
   {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
@@ -111,7 +109,7 @@ const jumboConnection = mongoose.createConnection(
 
 // Base vea - Datos raw de Vea
 const veaConnection = mongoose.createConnection(
-  process.env.MONGO_VEA_URI || 'mongodb://localhost:27017/vea',
+  process.env.MONGO_VEA_URI || 'mongodb://localhost:27017/vea_raw',
   {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
@@ -121,7 +119,7 @@ const veaConnection = mongoose.createConnection(
 
 // Base disco - Datos raw de Disco
 const discoConnection = mongoose.createConnection(
-  process.env.MONGO_DISCO_URI || 'mongodb://localhost:27017/disco',
+  process.env.MONGO_DISCO_URI || 'mongodb://localhost:27017/disco_raw',
   {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
@@ -149,6 +147,12 @@ const databaseConnections = {
   vea: veaConnection,
   disco: discoConnection,
 };
+
+// Hacer conexiones disponibles globalmente ANTES de importar la app
+global.databaseConnections = databaseConnections;
+
+// Ahora importar la app (que importa los controladores)
+const app = require('./src/app');
 
 // Función para verificar estado de todas las conexiones
 const checkConnections = async () => {
@@ -190,8 +194,15 @@ Object.entries(databaseConnections).forEach(([name, connection]) => {
 });
 
 // ============================================================================
-// INICIALIZACIÓN DEL SERVIDOR
+// CONEXIÓN POR DEFECTO PARA MODELOS QUE NO ESPECIFICAN CONEXIÓN
 // ============================================================================
+
+// Conexión por defecto para modelos que no especifican conexión (como algunos legacy)
+mongoose.connect(process.env.MONGO_URI || process.env.MONGO_CARREFOUR_URI || 'mongodb://localhost:27017/caminando_online', {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+});
 
 // Verificar conexiones antes de iniciar el servidor
 const initializeServer = async () => {
@@ -219,16 +230,13 @@ const initializeServer = async () => {
       console.warn(`⚠️  Warning: ${totalConnections - connectedCount} database connections failed. Server starting with limited functionality.`);
     }
 
-    // Hacer conexiones disponibles globalmente
-    global.databaseConnections = databaseConnections;
-
     // Iniciar servidor
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🌐 Server running on port ${PORT}`);
       console.log(`🏗️  Architecture: Multi-database (8 databases)`);
       console.log(`📊 Connected databases: ${connectedCount}/${totalConnections}`);
-      console.log('✅ Caminando Online V4 Server started successfully!');
+      console.log('✅ Caminando Online Server started successfully!');
     });
 
   } catch (error) {
